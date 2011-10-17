@@ -37,6 +37,7 @@ class Configuration implements ConfigurationInterface
 
         $this->addDocumentManagersSection($rootNode);
         $this->addConnectionsSection($rootNode);
+        $this->addAclProviderSection($rootNode);
 
         $rootNode
             ->children()
@@ -140,6 +141,30 @@ class Configuration implements ConfigurationInterface
                                     ->scalarNode('username')->end()
                                     ->scalarNode('password')->end()
                                 ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+    }
+
+    /**
+     * Adds the configuration for the "acl_provider" key
+     */
+    private function addAclProviderSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('acl_provider')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('database')->end()
+                        ->arrayNode('collections')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('entry')->defaultValue('acl_entry')->end()
+                                ->scalarNode('object_identity')->defaultValue('acl_oid')->end()
                             ->end()
                         ->end()
                     ->end()

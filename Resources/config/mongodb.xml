@@ -34,7 +34,6 @@
         <!-- metadata -->
         <parameter key="doctrine.odm.mongodb.metadata.driver_chain.class">Doctrine\ODM\MongoDB\Mapping\Driver\DriverChain</parameter>
         <parameter key="doctrine.odm.mongodb.metadata.annotation.class">Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver</parameter>
-        <parameter key="doctrine.odm.mongodb.metadata.annotation_reader.class">Doctrine\Common\Annotations\AnnotationReader</parameter>
         <parameter key="doctrine.odm.mongodb.metadata.xml.class">Symfony\Bundle\DoctrineMongoDBBundle\Mapping\Driver\XmlDriver</parameter>
         <parameter key="doctrine.odm.mongodb.metadata.yml.class">Symfony\Bundle\DoctrineMongoDBBundle\Mapping\Driver\YamlDriver</parameter>
 
@@ -46,6 +45,7 @@
 
         <!-- security/user -->
         <parameter key="doctrine.odm.mongodb.security.user.provider.class">Symfony\Bundle\DoctrineMongoDBBundle\Security\DocumentUserProvider</parameter>
+        <parameter key="doctrine.odm.mongodb.security.acl.provider.class">Symfony\Bundle\DoctrineMongoDBBundle\Security\Acl\MutableAclProvider</parameter>
 
         <!-- proxy cache warmer -->
         <parameter key="doctrine.odm.mongodb.proxy_cache_warmer.class">Symfony\Bundle\DoctrineMongoDBBundle\CacheWarmer\ProxyCacheWarmer</parameter>
@@ -77,13 +77,7 @@
             <argument type="service" id="doctrine.odm.mongodb.metadata.annotation_reader" />
             <argument>%doctrine.odm.mongodb.document_dirs%</argument>
         </service>
-        <service id="doctrine.odm.mongodb.metadata.annotation_reader" class="%doctrine.odm.mongodb.metadata.annotation_reader.class%">
-            <argument type="service" id="doctrine.odm.mongodb.cache" />
-            <call method="setAnnotationNamespaceAlias">
-                <argument>Doctrine\ODM\MongoDB\Mapping\</argument>
-                <argument>mongodb</argument>
-            </call>
-        </service>
+        <service id="doctrine.odm.mongodb.metadata.annotation_reader" alias="annotation_reader" />
         <service id="doctrine.odm.mongodb.metadata.xml" class="%doctrine.odm.mongodb.metadata.xml.class%">
             <argument>%doctrine.odm.mongodb.xml_mapping_dirs%</argument>
         </service>
@@ -121,6 +115,16 @@
         </service>
 
         <!-- Security -->
+        <service id="doctrine.odm.mongodb.security.acl.provider" class="%doctrine.odm.mongodb.security.acl.provider.class%" public="false" abstract="true">
+            <argument type="service" id="doctrine.odm.mongodb.default_connection" />
+            <argument>%doctrine.odm.mongodb.security.acl.database%</argument>
+            <argument type="service" id="security.acl.permission_granting_strategy" />
+            <argument type="collection">
+                <argument key="entry_collection">%doctrine.odm.mongodb.security.acl.entry_collection%</argument>
+                <argument key="oid_collection">%doctrine.odm.mongodb.security.acl.oid_collection%</argument>
+            </argument>
+            <argument type="service" id="security.acl.cache" on-invalid="null" />
+        </service>
         <service id="doctrine.odm.mongodb.security.user.provider" class="%doctrine.odm.mongodb.security.user.provider.class%" public="false" abstract="true">
             <argument type="service" id="doctrine.odm.mongodb.security.user.document_manager" />
         </service>

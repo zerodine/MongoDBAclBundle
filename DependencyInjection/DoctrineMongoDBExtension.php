@@ -26,6 +26,7 @@ use Symfony\Bundle\DoctrineAbstractBundle\DependencyInjection\AbstractDoctrineEx
  * @author Bulat Shakirzyanov <bulat@theopenskyproject.com>
  * @author Kris Wallsmith <kris@symfony.com>
  * @author Jonathan H. Wage <jonwage@gmail.com>
+ * @author Richard Shank <develop@zestic.com>
  */
 class DoctrineMongoDBExtension extends AbstractDoctrineExtension
 {
@@ -55,6 +56,10 @@ class DoctrineMongoDBExtension extends AbstractDoctrineExtension
         if (empty ($config['default_document_manager'])) {
             $keys = array_keys($config['document_managers']);
             $config['default_document_manager'] = reset($keys);
+        }
+
+        if (isset($config['acl_provider'])) {
+            $this->loadAcl($config['acl_provider'], $config['default_database'], $container);
         }
 
         // set some options as parameters and unset them
@@ -102,6 +107,15 @@ class DoctrineMongoDBExtension extends AbstractDoctrineExtension
         return $options;
     }
 
+    protected function loadAcl($config, $defaultDatabase, ContainerBuilder $container)
+    {
+        $database = isset($config['database']) ? $config['database'] : $defaultDatabase;
+        $container->setParameter('doctrine.odm.mongodb.security.acl.database', $database);
+
+        $container->setParameter('doctrine.odm.mongodb.security.acl.entry_collection', $config['collections']['entry']);
+        $container->setParameter('doctrine.odm.mongodb.security.acl.oid_collection', $config['collections']['object_identity']);
+    }
+
     /**
      * Loads the document managers configuration.
      *
@@ -137,7 +151,7 @@ class DoctrineMongoDBExtension extends AbstractDoctrineExtension
      */
     protected function loadDocumentManager(array $documentManager, $defaultDM, $defaultDB, $defaultMetadataCache, ContainerBuilder $container)
     {
-        $defaultDatabase = isset($documentManager['default_database']) ? $documentManager['default_database'] : $defaultDB;
+        $defaultDatabase = isset($documentManager['database']) ? $documentManager['database'] : $defaultDB;
         $configServiceName = sprintf('doctrine.odm.mongodb.%s_configuration', $documentManager['name']);
 
         if ($container->hasDefinition($configServiceName)) {
