@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bundle\DoctrineMongoDBBundle\Tests;
+namespace IamPersistent\MongoDBAclBundle\Tests;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;

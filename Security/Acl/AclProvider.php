@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Bundle\DoctrineMongoDBBundle\Security\Acl;
+namespace IamPersistent\MongoDBAclBundle\Security\Acl;
 
 use Doctrine\MongoDB\Database;
 use Doctrine\MongoDB\Cursor;

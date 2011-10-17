@@ -1,8 +1,8 @@
 <?php
 
-namespace Symfony\Bundle\DoctrineMongoDBBundle\Tests\Security\Acl;
+namespace IamPersistent\MongoDBAclBundle\Tests\Security\Acl;
 
-use Symfony\Bundle\DoctrineMongoDBBundle\Security\Acl\AclProvider;
+use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Doctrine\MongoDB\Connection;

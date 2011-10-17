@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bundle\DoctrineMongoDBBundle\Tests;
+namespace IamPersistent\MongoDBAclBundle\Tests;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection\DoctrineMongoDBExtension;
+use IamPersistent\MongoDBAclBundle\DependencyInjection\DoctrineMongoDBExtension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class ContainerTest extends TestCase
@@ -28,7 +28,7 @@ class ContainerTest extends TestCase
             'kernel.cache_dir'   => sys_get_temp_dir(),
             'kernel.debug'       => false,
         )));
-        $loader = new DoctrineMongoDBExtension();
+        $loader = new IamPersistentMongoDBAclExtension();
         $container->registerExtension($loader);
 
         $configs = array();
@@ -43,20 +43,7 @@ class ContainerTest extends TestCase
     public function testContainer()
     {
         $container = $this->getContainer();
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\Mapping\Driver\DriverChain', $container->get('doctrine.odm.mongodb.metadata.chain'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver', $container->get('doctrine.odm.mongodb.metadata.annotation'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\Mapping\Driver\XmlDriver', $container->get('doctrine.odm.mongodb.metadata.xml'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\Mapping\Driver\YamlDriver', $container->get('doctrine.odm.mongodb.metadata.yml'));
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container->get('doctrine.odm.mongodb.cache.array'));
-        $this->assertInstanceOf('Symfony\Bundle\DoctrineMongoDBBundle\Logger\DoctrineMongoDBLogger', $container->get('doctrine.odm.mongodb.logger'));
-        $this->assertInstanceOf('Symfony\Bundle\DoctrineMongoDBBundle\DataCollector\DoctrineMongoDBDataCollector', $container->get('doctrine.odm.mongodb.data_collector'));
-        $this->assertInstanceOf('Doctrine\MongoDB\Connection', $container->get('doctrine.odm.mongodb.default_connection'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\Configuration', $container->get('doctrine.odm.mongodb.default_configuration'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\Mapping\Driver\DriverChain', $container->get('doctrine.odm.mongodb.default_metadata_driver'));
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container->get('doctrine.odm.mongodb.default_metadata_cache'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\DocumentManager', $container->get('doctrine.odm.mongodb.default_document_manager'));
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container->get('doctrine.odm.mongodb.cache'));
-        $this->assertInstanceOf('Doctrine\ODM\MongoDB\DocumentManager', $container->get('doctrine.odm.mongodb.document_manager'));
-        $this->assertInstanceof('Doctrine\Common\EventManager', $container->get('doctrine.odm.mongodb.event_manager'));
+        $this->assertInstanceOf('IamPersistent\MongoDBAclBundle\Logger\DoctrineMongoDBLogger', $container->get('doctrine.odm.mongodb.logger'));
+        $this->assertInstanceOf('IamPersistent\MongoDBAclBundle\DataCollector\DoctrineMongoDBDataCollector', $container->get('doctrine.odm.mongodb.data_collector'));
     }
 }

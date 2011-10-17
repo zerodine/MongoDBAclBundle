@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <!-- security/user -->
+        <parameter key="doctrine.odm.mongodb.security.user.provider.class">IamPersistent\MongoDBAclBundle\Security\DocumentUserProvider</parameter>
+        <parameter key="doctrine.odm.mongodb.security.acl.provider.class">IamPersistent\MongoDBAclBundle\Security\Acl\MutableAclProvider</parameter>
+    </parameters>
+
+    <services>
+        <!-- Security -->
+        <service id="doctrine.odm.mongodb.security.acl.provider" class="%doctrine.odm.mongodb.security.acl.provider.class%" public="false" abstract="true">
+            <argument type="service" id="doctrine.odm.mongodb.default_connection" />
+            <argument>%doctrine.odm.mongodb.security.acl.database%</argument>
+            <argument type="service" id="security.acl.permission_granting_strategy" />
+            <argument type="collection">
+                <argument key="entry_collection">%doctrine.odm.mongodb.security.acl.entry_collection%</argument>
+                <argument key="oid_collection">%doctrine.odm.mongodb.security.acl.oid_collection%</argument>
+            </argument>
+            <argument type="service" id="security.acl.cache" on-invalid="null" />
+        </service>
+        <service id="doctrine.odm.mongodb.security.user.provider" class="%doctrine.odm.mongodb.security.user.provider.class%" public="false" abstract="true">
+            <argument type="service" id="doctrine.odm.mongodb.security.user.document_manager" />
+        </service>
+        <service id="doctrine.odm.mongodb.security.user.document_manager" alias="doctrine.odm.mongodb.default_document_manager" public="false" />
+    </services>
+</container>

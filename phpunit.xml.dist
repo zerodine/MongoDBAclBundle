@@ -12,7 +12,7 @@
          bootstrap="./Tests/bootstrap.php"
 >
     <testsuites>
-        <testsuite name="DoctrineMongoDBBundle Test Suite">
+        <testsuite name="IamPersistentMongoDBAclBundle Test Suite">
             <directory>./Tests/</directory>
         </testsuite>
     </testsuites>
