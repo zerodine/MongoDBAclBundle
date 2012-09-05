@@ -35,7 +35,7 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
         $configuration = new Configuration($container->getParameter('kernel.debug'));
         $config = $processor->processConfiguration($configuration, $configs);
 
-        if (isset($config['acl_provider']) && isset($config['default_database'])) {
+        if (isset($config['acl_provider']) && isset($config['acl_provider']['default_database'])) {
             $this->loadAcl($config['acl_provider'], $container);
         }
     }
