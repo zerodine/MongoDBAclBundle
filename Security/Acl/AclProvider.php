@@ -446,7 +446,7 @@ class AclProvider implements AclProviderInterface
                     // some ACEs are shared between ACL instances
                     if (!isset($loadedAces[$aceId])) {
                         if (isset($entry['securityIdentity']['username'])) {
-                            $securityId = '1' . $entry['securityIdentity']['class'];
+                            $securityId = '1' . $entry['securityIdentity']['username'];
                             if (!isset($sids[$securityId])) {
                                 $sids[$securityId] = new UserSecurityIdentity(
                                     $entry['securityIdentity']['username'],
