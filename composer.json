@@ -1,0 +1,26 @@
+{
+    "name": "iampersistent/mongodb-acl-bundle",
+    "type": "symfony-bundle",
+    "description": "MongoDB ACK Bundle",
+    "keywords": ["security", "ACL", "MongoDB"],
+    "homepage": "https://github.com/iampersistent/MongoDBAclBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "contributors",
+            "homepage": "https://github.com/iampersistent/MongoDBAclBundle/contributors"
+        }
+    ],
+    "require": {
+        "doctrine/mongodb-odm-bundle": "2.2.*",
+        "php": ">=5.3.2",
+        "symfony/framework-bundle": "2.0.*"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-0": {
+            "IamPersistent\\MongoDBAclBundle": ""
+        }
+    },
+    "target-dir": "IamPersistent/MongoDBAclBundle"
+}
