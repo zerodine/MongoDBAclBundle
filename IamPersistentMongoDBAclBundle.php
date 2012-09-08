@@ -12,9 +12,9 @@ namespace IamPersistent\MongoDBAclBundle;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use IamPersistent\MongoDBAclBundle\DependencyInjection\Compiler\CreateHydratorDirectoryPass;
-use IamPersistent\MongoDBAclBundle\DependencyInjection\Compiler\CreateProxyDirectoryPass;
-use IamPersistent\MongoDBAclBundle\DependencyInjection\Compiler\EventManagerPass;
+use Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection\Compiler\CreateHydratorDirectoryPass;
+use Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection\Compiler\CreateProxyDirectoryPass;
+use Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection\Compiler\EventManagerPass;
 use IamPersistent\MongoDBAclBundle\DependencyInjection\DoctrineMongoDBExtension;
 
 /**

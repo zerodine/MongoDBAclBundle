@@ -11,7 +11,7 @@
 
 namespace IamPersistent\MongoDBAclBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author Richard Shank <develop@zestic.com>
  */
-class InitAclMongoDBCommand extends Command
+class InitAclMongoDBCommand extends ContainerAwareCommand
 {
     /**
      * @see Command
@@ -39,15 +39,16 @@ class InitAclMongoDBCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // todo: change services and paramters when the configuration has been finalized
-        $mongo = $this->container->get('doctrine.odm.mongodb.default_connection');
-        $this->dbName = $this->container->getParameter('doctrine.odm.mongodb.security.acl.database');
+        $container = $this->getContainer();
+        $mongo = $container->get('doctrine.odm.mongodb.default_connection');
+        $this->dbName = $container->getParameter('doctrine.odm.mongodb.security.acl.database');
         $db = $mongo->selectDatabase($this->dbName);
 
-        $oidCollection = $db->selectCollection($this->container->getParameter('doctrine.odm.mongodb.security.acl.oid_collection'));
+        $oidCollection = $db->selectCollection($container->getParameter('doctrine.odm.mongodb.security.acl.oid_collection'));
         $oidCollection->ensureIndex(array('randomKey' => 1), array());
         $oidCollection->ensureIndex(array('identifier' => 1, 'type' => 1));
 
-        $entryCollection = $db->selectCollection($this->container->getParameter('doctrine.odm.mongodb.security.acl.entry_collection'));
+        $entryCollection = $db->selectCollection($container->getParameter('doctrine.odm.mongodb.security.acl.entry_collection'));
         $entryCollection->ensureIndex(array('objectIdentity.$id' => 1));
 
         $output->writeln('ACL indexes have been initialized successfully.');

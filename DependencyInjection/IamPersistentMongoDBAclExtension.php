@@ -35,15 +35,14 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
         $configuration = new Configuration($container->getParameter('kernel.debug'));
         $config = $processor->processConfiguration($configuration, $configs);
 
-        if (isset($config['acl_provider'])) {
-            $this->loadAcl($config['acl_provider'], $config['default_database'], $container);
+        if (isset($config['acl_provider']) && isset($config['acl_provider']['default_database'])) {
+            $this->loadAcl($config['acl_provider'], $container);
         }
     }
 
-    protected function loadAcl($config, $defaultDatabase, ContainerBuilder $container)
+    protected function loadAcl($config, ContainerBuilder $container)
     {
-        $database = isset($config['database']) ? $config['database'] : $defaultDatabase;
-        $container->setParameter('doctrine.odm.mongodb.security.acl.database', $database);
+        $container->setParameter('doctrine.odm.mongodb.security.acl.database', $config['default_database']);
 
         $container->setParameter('doctrine.odm.mongodb.security.acl.entry_collection', $config['collections']['entry']);
         $container->setParameter('doctrine.odm.mongodb.security.acl.oid_collection', $config['collections']['object_identity']);
@@ -51,7 +50,7 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
 
     public function getAlias()
     {
-        return 'iampersistent_mongodb_acl';
+        return 'iam_persistent_mongodb_acl';
     }
 
     /**
@@ -62,5 +61,25 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
     public function getNamespace()
     {
         return 'http://symfony.com/schema/dic/doctrine/odm/mongodb';
+    }
+    
+        protected function getObjectManagerElementName($name)
+    {
+        return 'doctrine.odm.mongodb.' . $name;
+    }
+
+    protected function getMappingObjectDefaultName()
+    {
+        return 'Document';
+    }
+
+    protected function getMappingResourceConfigDirectory()
+    {
+        return 'Resources/config/doctrine';
+    }
+
+    protected function getMappingResourceExtension()
+    {
+        return 'mongodb';
     }
 }
