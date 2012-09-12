@@ -21,8 +21,6 @@ class ContainerTest extends TestCase
 {
     public function getContainer()
     {
-//        require_once __DIR__.'/DependencyInjection/Fixtures/Bundles/YamlBundle/YamlBundle.php';
-
         $container = new ContainerBuilder(new ParameterBag(array(
             'kernel.bundles'     => array('YamlBundle' => 'DoctrineMongoDBBundle\Tests\DependencyInjection\Fixtures\Bundles\YamlBundle\YamlBundle'),
             'kernel.cache_dir'   => sys_get_temp_dir(),
@@ -43,7 +41,7 @@ class ContainerTest extends TestCase
     public function testContainer()
     {
         $this->markTestSkipped('not sure what the point is in the current tests');
-        
+
         $container = $this->getContainer();
         $this->assertInstanceOf('IamPersistent\MongoDBAclBundle\Logger\DoctrineMongoDBLogger', $container->get('doctrine.odm.mongodb.logger'));
         $this->assertInstanceOf('IamPersistent\MongoDBAclBundle\DataCollector\DoctrineMongoDBDataCollector', $container->get('doctrine.odm.mongodb.data_collector'));
