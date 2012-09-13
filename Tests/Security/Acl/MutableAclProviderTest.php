@@ -430,10 +430,15 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
     protected function tearDown()
     {
         $this->oid = array();
-        $this->connection->close();
-        $this->connection = null;
-        $this->con->drop();
-        $this->con = null;
+        if ($this->connection) {
+            $this->connection->close();
+            $this->connection = null;
+        }
+
+        if ($this->con) {
+            $this->con->drop();
+            $this->con = null;
+        }
     }
 
     protected function getField($object, $field)
