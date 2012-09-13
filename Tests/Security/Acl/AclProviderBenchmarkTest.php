@@ -41,7 +41,7 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         // comment the following line, and run only this test, if you need to benchmark
-        $this->markTestSkipped();
+        $this->markTestSkipped('Benchmarking skipped');
 
         if (!class_exists('Doctrine\MongoDB\Connection')) {
             $this->markTestSkipped('Doctrine2 MongoDB is required for this test');

@@ -4,7 +4,7 @@ MongoDB Acl Provider
 To use the MongoDB Acl Provider, the minimal configuration is adding acl_provider to the MongoDb config in config.yml
 
      # app/config/config.yml
-    iampersistent_mongodb_acl:
+    iam_persistent_mongo_db_acl:
         acl_provider: 
             default_database: %mongodb_database_name%
 
@@ -13,7 +13,7 @@ The next requirement is to add the provider to the security configuration
     # app/config/security.yml
     services:
         mongodb_acl_provider:
-            parent: doctrine.odm.mongodb.security.acl.provider
+            parent: doctrine_mongodb.odm.security.acl.provider
 
     security:
         acl:
@@ -24,7 +24,7 @@ The next requirement is to add the provider to the security configuration
 The full acl provider configuration options are listed below::
 
     # app/config/config.yml
-    iampersistent_mongodb_acl:
+    iam_persistent_mongo_db_acl:
         acl_provider:
             default_database: ~
             collections:
