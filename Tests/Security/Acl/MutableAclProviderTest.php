@@ -423,17 +423,22 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         if (!class_exists('Doctrine\MongoDB\Connection')) {
             $this->markTestSkipped('Doctrine2 MongoDB is required for this test');
         }
-        $this->connection = new \Doctrine\MongoDB\Connection();
+        $this->connection = new Connection();
         $this->con = $this->connection->selectDatabase(static::$database);
     }
 
     protected function tearDown()
     {
         $this->oid = array();
-        $this->connection->close();
-        $this->connection = null;
-        $this->con->drop();
-        $this->con = null;
+        if ($this->connection) {
+            $this->connection->close();
+            $this->connection = null;
+        }
+
+        if ($this->con) {
+            $this->con->drop();
+            $this->con = null;
+        }
     }
 
     protected function getField($object, $field)
