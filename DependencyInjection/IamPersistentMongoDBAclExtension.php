@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Bundle\DoctrineAbstractBundle\DependencyInjection\AbstractDoctrineExtension;
+use Symfony\Bridge\Doctrine\DependencyInjection\AbstractDoctrineExtension;
 
 /**
  * @author Richard Shank <develop@zestic.com>
@@ -42,15 +42,15 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
 
     protected function loadAcl($config, ContainerBuilder $container)
     {
-        $container->setParameter('doctrine.odm.mongodb.security.acl.database', $config['default_database']);
+        $container->setParameter('doctrine_mongodb.odm.security.acl.database', $config['default_database']);
 
-        $container->setParameter('doctrine.odm.mongodb.security.acl.entry_collection', $config['collections']['entry']);
-        $container->setParameter('doctrine.odm.mongodb.security.acl.oid_collection', $config['collections']['object_identity']);
+        $container->setParameter('doctrine_mongodb.odm.security.acl.entry_collection', $config['collections']['entry']);
+        $container->setParameter('doctrine_mongodb.odm.security.acl.oid_collection', $config['collections']['object_identity']);
     }
 
     public function getAlias()
     {
-        return 'iam_persistent_mongodb_acl';
+        return 'iam_persistent_mongo_db_acl';
     }
 
     /**
@@ -65,7 +65,7 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
     
         protected function getObjectManagerElementName($name)
     {
-        return 'doctrine.odm.mongodb.' . $name;
+        return 'doctrine_mongodb.odm.' . $name;
     }
 
     protected function getMappingObjectDefaultName()

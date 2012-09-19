@@ -31,7 +31,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('iam_persistent_mongodb_acl');
+        $rootNode = $treeBuilder->root('iam_persistent_mongo_db_acl');
 
         $this->addAclProviderSection($rootNode);
 

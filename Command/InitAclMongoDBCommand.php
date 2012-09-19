@@ -40,15 +40,15 @@ class InitAclMongoDBCommand extends ContainerAwareCommand
     {
         // todo: change services and paramters when the configuration has been finalized
         $container = $this->getContainer();
-        $mongo = $container->get('doctrine.odm.mongodb.default_connection');
-        $this->dbName = $container->getParameter('doctrine.odm.mongodb.security.acl.database');
+        $mongo = $container->get('doctrine_mongodb.odm.default_connection');
+        $this->dbName = $container->getParameter('doctrine_mongodb.odm.security.acl.database');
         $db = $mongo->selectDatabase($this->dbName);
 
-        $oidCollection = $db->selectCollection($container->getParameter('doctrine.odm.mongodb.security.acl.oid_collection'));
+        $oidCollection = $db->selectCollection($container->getParameter('doctrine_mongodb.odm.security.acl.oid_collection'));
         $oidCollection->ensureIndex(array('randomKey' => 1), array());
         $oidCollection->ensureIndex(array('identifier' => 1, 'type' => 1));
 
-        $entryCollection = $db->selectCollection($container->getParameter('doctrine.odm.mongodb.security.acl.entry_collection'));
+        $entryCollection = $db->selectCollection($container->getParameter('doctrine_mongodb.odm.security.acl.entry_collection'));
         $entryCollection->ensureIndex(array('objectIdentity.$id' => 1));
 
         $output->writeln('ACL indexes have been initialized successfully.');
