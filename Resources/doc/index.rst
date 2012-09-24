@@ -30,3 +30,7 @@ The full acl provider configuration options are listed below::
             collections:
                 entry: ~
                 object_identity: ~
+
+
+To initialize the MongoDB ACL run the following command:
+     php app/console init:acl:mongodb
