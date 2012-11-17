@@ -1,14 +1,14 @@
 MongoDB Acl Provider
 ====================
 
-To use the MongoDB Acl Provider, the minimal configuration is adding acl_provider to the MongoDb config in config.yml
+To use the MongoDB Acl Provider, the minimal configuration is adding acl_provider to the MongoDb config in config.yml::
 
-     # app/config/config.yml
+    # app/config/config.yml
     iam_persistent_mongo_db_acl:
         acl_provider: 
             default_database: %mongodb_database_name%
 
-The next requirement is to add the provider to the security configuration
+The next requirement is to add the provider to the security configuration::
 
     # app/config/security.yml
     services:
@@ -32,5 +32,6 @@ The full acl provider configuration options are listed below::
                 object_identity: ~
 
 
-To initialize the MongoDB ACL run the following command:
-     php app/console init:acl:mongodb
+To initialize the MongoDB ACL run the following command::
+
+    php app/console init:acl:mongodb
