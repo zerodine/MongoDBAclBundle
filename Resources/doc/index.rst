@@ -1,6 +1,22 @@
 MongoDB Acl Provider
 ====================
 
+Installation using composer
+---------------------------
+
+To install MongoDBAclBundle using composer add following line to you composer.json file::
+
+    # composer.json
+    "iampersistent/mongodb-acl-bundle": "dev-master"
+
+Use the composer update command to start the installation. After the installation add following line into the bundles array in your AppKernel.php file::
+
+    # AppKernel.php
+    new IamPersistent\MongoDBAclBundle\IamPersistentMongoDBAclBundle()
+
+Configuration
+-------------
+
 To use the MongoDB Acl Provider, the minimal configuration is adding acl_provider to the MongoDb config in config.yml::
 
     # app/config/config.yml
