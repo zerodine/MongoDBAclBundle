@@ -410,8 +410,9 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
                     $sid = $this->getSecurityIdentityQuery($ace->getSecurityIdentity());
 
                     $objectIdentityId = $name === 'classFieldAces' ? null : $ace->getAcl()->getId();
+                    $class = $name === 'classFieldAces' ? $ace->getAcl()->getObjectIdentity()->getType() : null;
 
-                    $aceId = (string)$this->insertAccessControlEntry($objectIdentityId, $field, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure());
+                    $aceId = (string)$this->insertAccessControlEntry($objectIdentityId, $class, $field, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure());
                     $this->loadedAces[$aceId] = $ace;
 
                     $aceIdProperty = new \ReflectionProperty('Symfony\Component\Security\Acl\Domain\Entry', 'id');
@@ -454,8 +455,9 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
                 $sid = $this->getSecurityIdentityQuery($ace->getSecurityIdentity());
 
                 $objectIdentityId = $name === 'classAces' ? null : $ace->getAcl()->getId();
+                $class = $name === 'classAces' ? $ace->getAcl()->getObjectIdentity()->getType() : null;
 
-                $aceId = (string)$this->insertAccessControlEntry($objectIdentityId, null, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure());
+                $aceId = (string)$this->insertAccessControlEntry($objectIdentityId, $class, null, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure());
                 $this->loadedAces[$aceId] = $ace;
 
                 $aceIdProperty = new \ReflectionProperty($ace, 'id');
@@ -498,6 +500,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * Insert an ACE into the collection.
      *
      * @param integer|null $objectIdentityId
+     * @param string|null $class
      * @param string|null $field
      * @param integer $aceOrder
      * @param integer $securityIdentityId
@@ -508,7 +511,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * @param Boolean $auditFailure
      * @return MongoId
      */
-    protected function insertAccessControlEntry($objectIdentityId, $field, $aceOrder, $securityIdentity, $strategy, $mask, $granting, $auditSuccess, $auditFailure)
+    protected function insertAccessControlEntry($objectIdentityId, $class, $field, $aceOrder, $securityIdentity, $strategy, $mask, $granting, $auditSuccess, $auditFailure)
     {
         $criteria = array(
             'aceOrder' => $aceOrder,
@@ -554,8 +557,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      */
     protected function updateAces(\SplObjectStorage $aces)
     {
-        foreach ($aces as $ace)
-        {
+        foreach ($aces as $ace) {
             $update = array();
             $propertyChanges = $aces->offsetGet($ace);
             if (isset($propertyChanges['mask'])) {
