@@ -227,8 +227,9 @@ class AclProvider implements AclProviderInterface
         if (!$objIdentities->hasNext()) {
             throw new AclNotFoundException('There is no ACL for the given object identity.');
         }
-        $oids = $this->getOIDSet($objIdentities, $sids);
-        $entryQuery = array('objectIdentity.$id' => array('$in' => $oids));
+
+        list($oids, $types) = $this->getOidTypeSet($objIdentities, $sids);
+        $entryQuery = array('$or' => array(array('objectIdentity.$id' => array('$in' => $oids)), array('class' => array('$in' => $types))));
         $entryCursor = $this->connection->selectCollection($this->options['entry_collection'])->find($entryQuery);
         $oidQuery = array('_id' => array('$in' => $oids));
         $oidCursor = $this->connection->selectCollection($this->options['oid_collection'])->find($oidQuery);
@@ -278,21 +279,23 @@ class AclProvider implements AclProviderInterface
      *
      * @param Cursor $objectCursor
      * @param array $sids
-     * @throws AclNotFoundException
      * @return array $query
      */
-    protected function getOIDSet(Cursor $objectCursor, array $sids)
+    protected function getOidTypeSet(Cursor $objectCursor, array $sids)
     {
         // FIXME: add support for filtering by sids (right now we select all sids)
         $oids = array();
+        $types = array();
         $objectData = iterator_to_array($objectCursor);
         foreach ($objectData as $object) {
             $oids[] = $object['_id'];
+            $types[] = $object['type'];
             if (isset($object['ancestors'])) {
                 $oids = array_merge($oids, $object['ancestors']);
+                $types = array_merge($types, $object['ancestors']);
             }
         }
-        return array_unique($oids);
+        return array(array_unique($oids), array_unique($types));
     }
 
     /**
@@ -335,7 +338,7 @@ class AclProvider implements AclProviderInterface
         $aclParentAclProperty->setAccessible(true);
 
 
-        $entries = array();
+        $entries = $classEntries = array();
 
         /**
          * using iterator_to_array is faster, but could cause potential problems with low memory, high data set
@@ -347,15 +350,30 @@ class AclProvider implements AclProviderInterface
          */
         $entryData = iterator_to_array($entryCursor);
         foreach ($entryData as $entry) {
-            $objectId = (string)$entry['objectIdentity']['$id'];
             $eid = (string)$entry['_id'];
+            if (isset($entry['objectIdentity'])) {
+                $objectId = (string)$entry['objectIdentity']['$id'];
+                $entries[$objectId][$eid] = $entry;
+            } elseif (isset($entry['class'])) {
+                $class = (string)$entry['class'];
+                $classEntries[$class][$eid] = $entry;
+            }
             $entries[$objectId][$eid] = $entry;
         }
 
         $objectData = iterator_to_array($objectCursor);
         foreach ($objectData as $curObject) {
             $aclId = (string)$curObject['_id'];
+            $type = (string)$curObject['type'];
             $oid[$aclId] = $curObject;
+
+            //Attach the class aces to the right entry if the type of current object matches class
+            if (array_key_exists($type, $classEntries) && isset($entries[$aclId])) {
+                foreach ($classEntries[$type] as $entry) {
+                    $eid = (string)$entry['_id'];
+                    $entries[$aclId][$eid] = $entry;
+                }
+            }
 
             if (!isset($entries[$aclId])) {
                 $parent = $curObject;
@@ -379,6 +397,7 @@ class AclProvider implements AclProviderInterface
                 $objectIdentity = $oid[$aclId];
                 $classType = $objectIdentity['type'];
                 $objectIdentifier = $objectIdentity['identifier'];
+                $entryObjectIdentity = isset($entry['objectIdentity']) ? $entry['objectIdentity'] : null;
                 $fieldName = isset($entry['fieldName']) ? $entry['fieldName'] : null;
                 $aceOrder = $entry['aceOrder'];
                 $grantingStrategy = $entry['grantingStrategy'];
@@ -469,7 +488,7 @@ class AclProvider implements AclProviderInterface
                     $ace = $loadedAces[$aceId];
 
                     // assign ACE to the correct property
-                    if (null === $objectIdentity) {
+                    if (null === $entryObjectIdentity) {
                         if (null === $fieldName) {
                             $aces[$aclId][0][$aceOrder] = $ace;
                         } else {
