@@ -134,17 +134,20 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
     public function testFindAclsAddsPropertyListenerToParentAcls()
     {
         $provider = $this->getProvider();
-        $this->importAcls($provider, array(
-                                          'main' => array(
-                                              'object_identifier' => '1',
-                                              'class_type' => 'foo',
-                                              'parent_acl' => 'parent',
-                                          ),
-                                          'parent' => array(
-                                              'object_identifier' => '1',
-                                              'class_type' => 'anotherFoo',
-                                          )
-                                     ));
+        $this->importAcls(
+            $provider,
+            array(
+              'main' => array(
+                  'object_identifier' => '1',
+                  'class_type' => 'foo',
+                  'parent_acl' => 'parent',
+              ),
+              'parent' => array(
+                  'object_identifier' => '1',
+                  'class_type' => 'anotherFoo',
+              )
+            )
+        );
 
         $propertyChanges = $this->getField($provider, 'propertyChanges');
         $this->assertEquals(0, count($propertyChanges));
@@ -311,10 +314,19 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($acl->isEntriesInheriting(), $reloadedAcl->isEntriesInheriting());
 
         $aces = $acl->getObjectAces();
+        $classAces = $acl->getClassAces();
+        $classFieldAces = $acl->getClassFieldAces('field');
         $reloadedAces = $reloadedAcl->getObjectAces();
+        $reloadedClassAces = $reloadedAcl->getClassAces();
+        $reloadedClassFieldAces = $reloadedAcl->getClassFieldAces('field');
         $this->assertEquals(count($aces), count($reloadedAces));
-        foreach ($aces as $index => $ace) {
-            $this->assertAceEquals($ace, $reloadedAces[$index]);
+        $this->assertEquals(count($classAces), count($reloadedClassAces));
+
+        $allAces = array_merge($aces, $classAces);
+        $allReloadedAces = array_merge($reloadedAces, $reloadedClassAces);
+
+        foreach ($allAces as $index => $ace) {
+            $this->assertAceEquals($ace, $allReloadedAces[$index]);
         }
     }
 
