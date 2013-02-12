@@ -358,7 +358,6 @@ class AclProvider implements AclProviderInterface
                 $class = (string)$entry['class'];
                 $classEntries[$class][$eid] = $entry;
             }
-            $entries[$objectId][$eid] = $entry;
         }
 
         $objectData = iterator_to_array($objectCursor);
