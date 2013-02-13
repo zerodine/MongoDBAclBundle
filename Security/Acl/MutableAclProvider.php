@@ -529,6 +529,9 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
                 '$id' => new \MongoId($objectIdentityId),
             );
         }
+        if (isset($class)) {
+            $criteria['class'] = $class;
+        }
         if (isset($field)) {
             $criteria['fieldName'] = $field;
         }
