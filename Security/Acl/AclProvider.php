@@ -366,14 +366,6 @@ class AclProvider implements AclProviderInterface
             $type = (string)$curObject['type'];
             $oid[$aclId] = $curObject;
 
-            //Attach the class aces to the right entry if the type of current object matches class
-            if (array_key_exists($type, $classEntries) && isset($entries[$aclId])) {
-                foreach ($classEntries[$type] as $entry) {
-                    $eid = (string)$entry['_id'];
-                    $entries[$aclId][$eid] = $entry;
-                }
-            }
-
             if (!isset($entries[$aclId])) {
                 $parent = $curObject;
                 while ((string)$parent['_id'] != $aclId && isset($parent['parent'])) {
@@ -392,6 +384,15 @@ class AclProvider implements AclProviderInterface
                     'auditSuccess' => null,
                 );
             }
+
+            //Attach the class aces to the right entry if the type of current object matches class
+            if (array_key_exists($type, $classEntries)) {
+                foreach ($classEntries[$type] as $entry) {
+                    $eid = (string)$entry['_id'];
+                    $entries[$aclId][$eid] = $entry;
+                }
+            }
+
             foreach ($entries[$aclId] as $aceId => $entry) {
                 $objectIdentity = $oid[$aclId];
                 $classType = $objectIdentity['type'];
