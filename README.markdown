@@ -9,5 +9,5 @@ This bundle allows the use of MongoDB as the storage layer for the Symfony ACLs 
 Documentation
 -------------
 
-The documentation for configuring this bundle can be found [here](MongoDBAclBundle/blob/master/Resources/doc/index.rst).
+The documentation for configuring this bundle can be found [here](Resources/doc/index.rst).
 
