@@ -2,7 +2,6 @@
 
 namespace IamPersistent\MongoDBAclBundle\Security\Acl;
 
-use Doctrine\MongoDB\Database;
 use Doctrine\MongoDB\Cursor;
 use Doctrine\MongoDB\Connection;
 
@@ -50,7 +49,7 @@ class AclProvider implements AclProviderInterface
     /**
      * Constructor
      *
-     * @param Doctrine\MongoDb\Connection $connection
+     * @param \Doctrine\MongoDb\Connection $connection
      * @param string $database
      * @param PermissionGrantingStrategyInterface $permissionGrantingStrategy
      * @param array $options
@@ -240,7 +239,7 @@ class AclProvider implements AclProviderInterface
      * Retrieves the documents associated with the values in the batch
      *
      * @param array $batch ObjectIdentity
-     * @return Doctrine\MongoDB\Cursor
+     * @return \Doctrine\MongoDB\Cursor
      */
     protected function getObjectIdentities(array &$batch)
     {
@@ -261,7 +260,7 @@ class AclProvider implements AclProviderInterface
      * Retrieve the document associated with the values in the ObjectIdentity
      *
      * @param ObjectIdentity $oid
-     * @return Doctrine\MongoDB\Cursor
+     * @return \Doctrine\MongoDB\Cursor
      */
     protected function getObjectIdentity(ObjectIdentity $oid)
     {
