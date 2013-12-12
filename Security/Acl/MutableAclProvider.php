@@ -54,7 +54,6 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      */
     public function createAcl(ObjectIdentityInterface $oid)
     {
-        $key = $this->retrieveObjectIdentityPrimaryKey($oid);
         if ($this->retrieveObjectIdentityPrimaryKey($oid)) {
             throw new AclAlreadyExistsException(sprintf('%s is already associated with an ACL.', $oid));
         }
