@@ -17,6 +17,7 @@ use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
 use Symfony\Component\Security\Acl\Exception\ConcurrentModificationException;
 use Symfony\Component\Security\Acl\Model\AuditableEntryInterface;
 use Symfony\Component\Security\Acl\Model\EntryInterface;
+use Symfony\Component\Security\Acl\Model\FieldAwareEntryInterface;
 use Symfony\Component\Security\Acl\Model\FieldEntryInterface;
 
 class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
@@ -48,7 +49,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
             self::assertSame($a->isAuditFailure(), $b->isAuditFailure());
         }
 
-        if ($a instanceof FieldEntryInterface) {
+        if ($a instanceof FieldEntryInterface || $a instanceof FieldAwareEntryInterface) {
             self::assertSame($a->getField(), $b->getField());
         }
     }
