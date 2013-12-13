@@ -71,9 +71,11 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
     public function deleteAcl(ObjectIdentityInterface $oid)
     {
         // TODO: safe options
-
+        $removable = array();
         $parentId = $this->retrieveObjectIdentityPrimaryKey($oid);
-        $removable[(string)$parentId] = $parentId;
+        if ($parentId) {
+            $removable[(string)$parentId] = $parentId;
+        }
         $children = $this->findChildren($oid);
         foreach ($children as $child) {
             $childId = $child['_id'];
@@ -81,6 +83,10 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
             foreach ($child['ancestors'] as $ancestor) {
                 $removable[(string)$ancestor] = $ancestor;
             }
+        }
+
+        if (empty($removable)) {
+            return;
         }
 
         $query = array(
@@ -346,7 +352,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
     {
         // TODO: safe options
         $query = array(
-            'objectIdentity' => array('$in' => $removableIds),
+            'objectIdentity.$id' => array('$in' => $removableIds),
         );
         $this->connection->selectCollection($this->options['entry_collection'])->remove($query);
     }
