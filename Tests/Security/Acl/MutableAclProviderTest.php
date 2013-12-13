@@ -4,6 +4,7 @@ namespace IamPersistent\MongoDBAclBundle\Tests\Security\Acl;
 
 use Doctrine\MongoDB\Connection;
 
+use Doctrine\MongoDB\Database;
 use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
 use IamPersistent\MongoDBAclBundle\Security\Acl\MutableAclProvider;
 use Symfony\Component\Security\Acl\Domain\Acl;
@@ -16,12 +17,19 @@ use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
 use Symfony\Component\Security\Acl\Exception\ConcurrentModificationException;
 use Symfony\Component\Security\Acl\Model\AuditableEntryInterface;
 use Symfony\Component\Security\Acl\Model\EntryInterface;
-use Symfony\Component\Security\Acl\Model\FieldAwareEntryInterface;
+use Symfony\Component\Security\Acl\Model\FieldEntryInterface;
 
 class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
 {
     static protected $database = 'aclTest';
+    /**
+     * @var Database
+     */
     protected $con;
+
+    /**
+     * @var Connection
+     */
     protected $connection;
 
     public static function assertAceEquals(EntryInterface $a, EntryInterface $b)
@@ -40,13 +48,13 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
             self::assertSame($a->isAuditFailure(), $b->isAuditFailure());
         }
 
-        if ($a instanceof FieldAwareEntryInterface) {
+        if ($a instanceof FieldEntryInterface) {
             self::assertSame($a->getField(), $b->getField());
         }
     }
 
     /**
-     * @expectedException Symfony\Component\Security\Acl\Exception\AclAlreadyExistsException
+     * @expectedException \Symfony\Component\Security\Acl\Exception\AclAlreadyExistsException
      */
     public function testCreateAclThrowsExceptionWhenAclAlreadyExists()
     {
@@ -63,9 +71,13 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $acl = $provider->createAcl($oid);
         $cachedAcl = $provider->findAcl($oid);
 
+        $options = $this->getOptions();
+        $oidCursor = $this->con->selectCollection($options['oid_collection'])->find();
+
         $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Acl', $acl);
         $this->assertSame($acl, $cachedAcl);
         $this->assertTrue($acl->getObjectIdentity()->equals($oid));
+        $this->assertEquals(1, $oidCursor->count());
     }
 
     public function testDeleteAcl()
@@ -99,6 +111,25 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
             $this->fail('Child-ACLs have not been deleted.');
         } catch (AclNotFoundException $notFound) {
         }
+    }
+
+    public function testDeleteAclRemovesOidAndAces()
+    {
+        $provider = $this->getProvider();
+        $oid = new ObjectIdentity(1, 'Foo');
+
+        $acl = $provider->createAcl($oid);
+        $acl->insertObjectAce(new RoleSecurityIdentity('ROLE_USER'), 1);
+
+        $provider->updateAcl($acl);
+        $provider->deleteAcl($oid);
+
+        $options = $this->getOptions();
+        $oidCursor = $this->con->selectCollection($options['oid_collection'])->find();
+        $entryCursor = $this->con->selectCollection($options['entry_collection'])->find();
+
+        $this->assertEquals(0, $oidCursor->count());
+        $this->assertEquals(0, $entryCursor->count());
     }
 
     public function testFindAclsAddsPropertyListener()
