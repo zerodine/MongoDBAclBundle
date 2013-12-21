@@ -4,5 +4,9 @@ php:
     - 5.3
     - 5.4
 
+services: mongodb
+
 before_script:
-    - composer install
+    - echo '' > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini
+    - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+    - composer install --dev
