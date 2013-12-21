@@ -9,10 +9,7 @@
 
 namespace IamPersistent\MongoDBAclBundle;
 
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use IamPersistent\MongoDBAclBundle\DependencyInjection\DoctrineMongoDBExtension;
 
 /**
  * @author Richard Shank <develop@zestic.com>

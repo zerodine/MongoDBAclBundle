@@ -8,19 +8,16 @@
 
 namespace IamPersistent\MongoDBAclBundle\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Alias;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Bridge\Doctrine\DependencyInjection\AbstractDoctrineExtension;
 
 /**
  * @author Richard Shank <develop@zestic.com>
  */
-class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
+class IamPersistentMongoDBAclExtension extends Extension
 {
     /**
      * Responds to the doctrine_mongodb configuration parameter.
@@ -61,25 +58,5 @@ class IamPersistentMongoDBAclExtension extends AbstractDoctrineExtension
     public function getNamespace()
     {
         return 'http://symfony.com/schema/dic/doctrine/odm/mongodb';
-    }
-    
-        protected function getObjectManagerElementName($name)
-    {
-        return 'doctrine_mongodb.odm.' . $name;
-    }
-
-    protected function getMappingObjectDefaultName()
-    {
-        return 'Document';
-    }
-
-    protected function getMappingResourceConfigDirectory()
-    {
-        return 'Resources/config/doctrine';
-    }
-
-    protected function getMappingResourceExtension()
-    {
-        return 'mongodb';
     }
 }

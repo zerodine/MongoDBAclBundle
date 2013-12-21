@@ -4,13 +4,11 @@ namespace IamPersistent\MongoDBAclBundle\Security\Acl;
 
 use Doctrine\Common\PropertyChangedListener;
 use Doctrine\MongoDB\Connection;
-use Doctrine\MongoDB\Database;
 
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Exception\AclAlreadyExistsException;
 use Symfony\Component\Security\Acl\Exception\ConcurrentModificationException;
-use Symfony\Component\Security\Acl\Exception\Exception;
 use Symfony\Component\Security\Acl\Model\AclCacheInterface;
 use Symfony\Component\Security\Acl\Model\AclInterface;
 use Symfony\Component\Security\Acl\Model\EntryInterface;
@@ -338,7 +336,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
         }
 
         // TODO: safe options
-        return $this->connection->selectCollection($this->options['oid_collection'])->insert($data);
+        $this->connection->selectCollection($this->options['oid_collection'])->insert($data);
     }
 
     /**

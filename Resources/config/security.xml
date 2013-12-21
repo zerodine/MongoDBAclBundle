@@ -6,7 +6,6 @@
 
     <parameters>
         <!-- security/user -->
-        <parameter key="doctrine_mongodb.odm.security.user.provider.class">IamPersistent\MongoDBAclBundle\Security\DocumentUserProvider</parameter>
         <parameter key="doctrine_mongodb.odm.security.acl.provider.class">IamPersistent\MongoDBAclBundle\Security\Acl\MutableAclProvider</parameter>
     </parameters>
 
@@ -22,9 +21,5 @@
             </argument>
             <argument type="service" id="security.acl.cache" on-invalid="null" />
         </service>
-        <service id="doctrine_mongodb.odm.security.user.provider" class="%doctrine_mongodb.odm.security.user.provider.class%" public="false" abstract="true">
-            <argument type="service" id="doctrine_mongodb.odm.security.user.document_manager" />
-        </service>
-        <service id="doctrine_mongodb.odm.security.user.document_manager" alias="doctrine_mongodb.odm.default_document_manager" public="false" />
     </services>
 </container>
