@@ -86,6 +86,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
             return;
         }
 
+        $removable = array_values($removable);
         $query = array(
             '_id' => array('$in' => $removable),
         );
