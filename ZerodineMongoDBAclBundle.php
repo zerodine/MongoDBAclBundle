@@ -7,14 +7,14 @@
  * file that was distributed with this source code.
  */
 
-namespace IamPersistent\MongoDBAclBundle;
+namespace Zerodine\MongoDBAclBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * @author Richard Shank <develop@zestic.com>
  */
-class IamPersistentMongoDBAclBundle extends Bundle
+class ZerodineMongoDBAclBundle extends Bundle
 {
 
 }

@@ -6,7 +6,7 @@
  * file that was distributed with this source code.
  */
 
-namespace IamPersistent\MongoDBAclBundle\DependencyInjection;
+namespace Zerodine\MongoDBAclBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
@@ -17,7 +17,7 @@ use Symfony\Component\Config\Definition\Processor;
 /**
  * @author Richard Shank <develop@zestic.com>
  */
-class IamPersistentMongoDBAclExtension extends Extension
+class ZerodineMongoDBAclExtension extends Extension
 {
     /**
      * Responds to the doctrine_mongodb configuration parameter.
