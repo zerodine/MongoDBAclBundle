@@ -47,7 +47,7 @@ class ZerodineMongoDBAclExtension extends Extension
 
     public function getAlias()
     {
-        return 'iam_persistent_mongo_db_acl';
+        return 'zerodine_mongo_db_acl';
     }
 
     /**

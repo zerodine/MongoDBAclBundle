@@ -6,7 +6,7 @@
 
     <parameters>
         <!-- security/user -->
-        <parameter key="doctrine_mongodb.odm.security.acl.provider.class">IamPersistent\MongoDBAclBundle\Security\Acl\MutableAclProvider</parameter>
+        <parameter key="doctrine_mongodb.odm.security.acl.provider.class">Zerodine\MongoDBAclBundle\Security\Acl\MutableAclProvider</parameter>
     </parameters>
 
     <services>

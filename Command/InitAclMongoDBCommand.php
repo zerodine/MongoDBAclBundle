@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace IamPersistent\MongoDBAclBundle\Command;
+namespace Zerodine\MongoDBAclBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;

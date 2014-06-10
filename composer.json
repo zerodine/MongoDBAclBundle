@@ -1,14 +1,14 @@
 {
-    "name": "iampersistent/mongodb-acl-bundle",
+    "name": "zerodine/mongodb-acl-bundle",
     "type": "symfony-bundle",
     "description": "MongoDB ACL Bundle",
     "keywords": ["security", "ACL", "MongoDB"],
-    "homepage": "https://github.com/iampersistent/MongoDBAclBundle",
+    "homepage": "https://github.com/zerodine/MongoDBAclBundle",
     "license": "MIT",
     "authors": [
         {
             "name": "contributors",
-            "homepage": "https://github.com/iampersistent/MongoDBAclBundle/contributors"
+            "homepage": "https://github.com/zerodine/MongoDBAclBundle/contributors"
         }
     ],
     "require": {
@@ -18,8 +18,8 @@
     },
     "autoload": {
         "psr-0": {
-            "IamPersistent\\MongoDBAclBundle": ""
+            "Zerodine\\MongoDBAclBundle": ""
         }
     },
-    "target-dir": "IamPersistent/MongoDBAclBundle"
+    "target-dir": "Zerodine/MongoDBAclBundle"
 }

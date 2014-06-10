@@ -1,9 +1,9 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\Tests\Security\Acl;
+namespace Zerodine\MongoDBAclBundle\Tests\Security\Acl;
 
 use Doctrine\MongoDB\Connection;
-use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
+use Zerodine\MongoDBAclBundle\Security\Acl\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;

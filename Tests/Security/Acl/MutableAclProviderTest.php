@@ -1,12 +1,12 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\Tests\Security\Acl;
+namespace Zerodine\MongoDBAclBundle\Tests\Security\Acl;
 
 use Doctrine\MongoDB\Connection;
 
 use Doctrine\MongoDB\Database;
-use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
-use IamPersistent\MongoDBAclBundle\Security\Acl\MutableAclProvider;
+use Zerodine\MongoDBAclBundle\Security\Acl\AclProvider;
+use Zerodine\MongoDBAclBundle\Security\Acl\MutableAclProvider;
 use Symfony\Component\Security\Acl\Domain\Acl;
 use Symfony\Component\Security\Acl\Domain\Entry;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
@@ -283,7 +283,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $args = array(
             $this->connection, static::$database, new PermissionGrantingStrategy(), array(),
         );
-        $provider = $this->getMockBuilder('IamPersistent\MongoDBAclBundle\Security\Acl\MutableAclProvider')
+        $provider = $this->getMockBuilder('Zerodine\MongoDBAclBundle\Security\Acl\MutableAclProvider')
                 ->setConstructorArgs($args)
                 ->getMock();
         $provider
