@@ -310,6 +310,39 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
         $this->propertyChanges->offsetSet($sender, $propertyChanges);
     }
 
+    /**
+     * Updates a user security identity when the user's username changes
+     *
+     * @param UserSecurityIdentity $usid
+     * @param string $oldUsername
+     */
+    public function updateUserSecurityIdentity(UserSecurityIdentity $usid, $oldUsername)
+    {
+        $this->connection->selectCollection($this->options['entry_collection'])
+                         ->createQueryBuilder()
+                         ->update()
+                         ->multiple(true)
+                         ->field('securityIdentity.username')->set($usid->getUsername())
+                         ->field('securityIdentity.username')->equals($oldUsername)
+                         ->getQuery()
+                         ->execute();
+    }
+
+    /**
+     * Deletes all ACEs for a given UserSecurityIdentity
+     *
+     * @param UserSecurityIdentity $usid
+     */
+    public function deleteAceBySecurityIdentity(UserSecurityIdentity $usid)
+    {
+        $this->connection->selectCollection($this->options['entry_collection'])
+                         ->createQueryBuilder()
+                         ->remove()
+                         ->field('securityIdentity.username')->equals($usid->getUsername())
+                         ->getQuery()
+                         ->execute();
+    }
+
 
     /**
      * Creates the ACL for the passed object identity
