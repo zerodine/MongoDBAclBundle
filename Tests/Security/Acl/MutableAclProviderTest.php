@@ -19,6 +19,7 @@ use Symfony\Component\Security\Acl\Model\AuditableEntryInterface;
 use Symfony\Component\Security\Acl\Model\EntryInterface;
 use Symfony\Component\Security\Acl\Model\FieldAwareEntryInterface;
 use Symfony\Component\Security\Acl\Model\FieldEntryInterface;
+use Symfony\Component\Security\Acl\Model\AclInterface;
 
 class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
 {
@@ -374,6 +375,57 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $reloadedAcl = $reloadProvider->findAcl(new ObjectIdentity(1, 'Foo'));
         $this->assertNotSame($acl, $reloadedAcl);
         $this->assertSame($parentAcl->getId(), $reloadedAcl->getParentAcl()->getId());
+    }
+
+    public function testUpdateUserSecurityIdentity()
+    {
+        $provider = $this->getProvider();
+        $acl = $provider->createAcl(new ObjectIdentity(1, 'Foo'));
+        $sid = new UserSecurityIdentity('johannes', 'FooClass');
+        $acl->setEntriesInheriting(!$acl->isEntriesInheriting());
+        $acl->insertObjectAce($sid, 1);
+        $acl->insertClassAce($sid, 5, 0, false);
+        $acl->insertObjectAce($sid, 2, 1, true);
+        $acl->insertClassFieldAce('field', $sid, 2, 0, true);
+        $provider->updateAcl($acl);
+        $newSid = new UserSecurityIdentity('mathieu', 'FooClass');
+        $provider->updateUserSecurityIdentity($newSid, 'johannes');
+        $reloadProvider = $this->getProvider();
+        $reloadedAcl = $reloadProvider->findAcl(new ObjectIdentity(1, 'Foo'));
+        $this->assertNotSame($acl, $reloadedAcl);
+        $this->assertSame($acl->isEntriesInheriting(), $reloadedAcl->isEntriesInheriting());
+        $aces = $acl->getObjectAces();
+        $reloadedAces = $reloadedAcl->getObjectAces();
+        $this->assertEquals(count($aces), count($reloadedAces));
+        foreach ($reloadedAces as $ace) {
+            $this->assertTrue($ace->getSecurityIdentity()->equals($newSid));
+        }
+    }
+
+    public function testDeleteAceBySecurityIdentity()
+    {
+        $provider = $this->getProvider();
+        $acl = $provider->createAcl(new ObjectIdentity(1, 'AceBySecurityIdentityTest'));
+        $sid = new UserSecurityIdentity('johannes', 'SecurityIdentityTestClass');
+        $sidOther = new UserSecurityIdentity('bob', 'SecurityIdentityTestClass');
+        $acl->setEntriesInheriting(!$acl->isEntriesInheriting());
+        $acl->insertObjectAce($sid, 1);
+        $acl->insertObjectAce($sidOther, 1);
+        $provider->updateAcl($acl);
+
+        $aces = $acl->getObjectAces();
+        $this->assertEquals(2, count($aces));
+
+        $provider->deleteAceBySecurityIdentity($sid);
+
+        $reloadProvider = $this->getProvider();
+        $reloadedAcl = $reloadProvider->findAcl(new ObjectIdentity(1, 'AceBySecurityIdentityTest'));
+        $this->assertTrue($reloadedAcl instanceof AclInterface);
+        $reloadedAces = $reloadedAcl->getObjectAces();
+        $this->assertEquals(1, count($reloadedAces));
+        foreach ($reloadedAces as $ace) {
+            $this->assertTrue($ace->getSecurityIdentity()->equals($sidOther));
+        }
     }
 
     /**
