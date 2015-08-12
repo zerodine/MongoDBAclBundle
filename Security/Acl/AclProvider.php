@@ -72,6 +72,10 @@ class AclProvider implements AclProviderInterface
     {
         $parentId = $this->retrieveObjectIdentityPrimaryKey($parentOid);
 
+        if (is_null($parentId)) {
+            return array();
+        };
+
         if ($directChildrenOnly) {
             $query = array(
                 "parent" => $parentId,
