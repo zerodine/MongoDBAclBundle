@@ -78,7 +78,7 @@ class AclProvider implements AclProviderInterface
 
         if ($directChildrenOnly) {
             $query = array(
-                "parent" => $parentId,
+                "parent._id" => $parentId,
             );
         } else {
             $query = array(
