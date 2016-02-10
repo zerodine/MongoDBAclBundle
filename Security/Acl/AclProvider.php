@@ -228,7 +228,7 @@ class AclProvider implements AclProviderInterface
         }
 
         list($oids, $types) = $this->getOidTypeSet($objIdentities, $sids);
-        $entryQuery = array('$or' => array(array('objectIdentity.$id' => array('$in' => $oids)), array('class' => array('$in' => $types))));
+        $entryQuery = array('$or' => array(array('objectIdentity.$id' => array('$in' => $oids)), array('class' => array('$in' => array_values($types)))));
         $entryCursor = $this->connection->selectCollection($this->options['entry_collection'])->find($entryQuery);
         $oidQuery = array('_id' => array('$in' => $oids));
         $oidCursor = $this->connection->selectCollection($this->options['oid_collection'])->find($oidQuery);
