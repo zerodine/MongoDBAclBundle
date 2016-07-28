@@ -1,6 +1,6 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\Security\Acl;
+namespace PWalkow\MongoDBAclBundle\Security\Acl;
 
 use Doctrine\MongoDB\Cursor;
 use Doctrine\MongoDB\Connection;
@@ -217,6 +217,7 @@ class AclProvider implements AclProviderInterface
      * @param array $batch
      * @param array $sids
      * @param array $oidLookup
+     *
      * @return \SplObjectStorage mapping object identities to ACL instances
      */
     protected function lookupObjectIdentities(array $batch, array $sids, array $oidLookup)
@@ -227,7 +228,7 @@ class AclProvider implements AclProviderInterface
             throw new AclNotFoundException('There is no ACL for the given object identity.');
         }
 
-        list($oids, $types) = $this->getOidTypeSet($objIdentities, $sids);
+        list($oids, $types) = $this->getOidTypeSet($objIdentities);
         $entryQuery = array('$or' => array(array('objectIdentity.$id' => array('$in' => $oids)), array('class' => array('$in' => $types))));
         $entryCursor = $this->connection->selectCollection($this->options['entry_collection'])->find($entryQuery);
         $oidQuery = array('_id' => array('$in' => $oids));
@@ -239,12 +240,12 @@ class AclProvider implements AclProviderInterface
      * Retrieves the documents associated with the values in the batch
      *
      * @param array $batch ObjectIdentity
+     *
      * @return \Doctrine\MongoDB\Cursor
      */
     protected function getObjectIdentities(array &$batch)
     {
         $batchSet = array();
-        $dataSet = new \SplObjectStorage();
         for ($i = 0, $c = count($batch); $i < $c; $i++) {
             $batchSet[] = $query = array(
                 "identifier" => $batch[$i]->getIdentifier(),
@@ -259,10 +260,11 @@ class AclProvider implements AclProviderInterface
     /**
      * Retrieve the document associated with the values in the ObjectIdentity
      *
-     * @param ObjectIdentity $oid
+     * @param ObjectIdentityInterface $oid
+     *
      * @return \Doctrine\MongoDB\Cursor
      */
-    protected function getObjectIdentity(ObjectIdentity $oid)
+    protected function getObjectIdentity(ObjectIdentityInterface $oid)
     {
         $query = array(
             "identifier" => $oid->getIdentifier(),
@@ -277,10 +279,10 @@ class AclProvider implements AclProviderInterface
      * ACEs, and security identities.
      *
      * @param Cursor $objectCursor
-     * @param array $sids
+     *
      * @return array $query
      */
-    protected function getOidTypeSet(Cursor $objectCursor, array $sids)
+    protected function getOidTypeSet(Cursor $objectCursor)
     {
         // FIXME: add support for filtering by sids (right now we select all sids)
         $oids = array();
@@ -306,12 +308,13 @@ class AclProvider implements AclProviderInterface
      * Keep in mind that changes to this method might severely reduce the
      * performance of the entire ACL system.
      *
-     * @param Cursor $cursor
-     * @param Cursor $objectIdentities
+     * @param Cursor $entryCursor
+     * @param Cursor $objectCursor
      * @param array $oidLookup
      * @param array $sids
-     * @throws \RuntimeException
      * @return \SplObjectStorage
+     * @internal param Cursor $cursor
+     * @internal param Cursor $objectIdentities
      */
     protected function hydrateObjectIdentities(Cursor $entryCursor, Cursor $objectCursor, array $oidLookup, array $sids)
     {

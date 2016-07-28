@@ -1,6 +1,6 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\DependencyInjection;
+namespace PWalkow\MongoDBAclBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -40,6 +40,7 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Adds the configuration for the "acl_provider" key
+     * @param ArrayNodeDefinition $rootNode
      */
     private function addAclProviderSection(ArrayNodeDefinition $rootNode)
     {

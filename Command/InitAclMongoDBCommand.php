@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace IamPersistent\MongoDBAclBundle\Command;
+namespace PWalkow\MongoDBAclBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,10 +35,14 @@ class InitAclMongoDBCommand extends ContainerAwareCommand
 
     /**
      * @see Command
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // todo: change services and paramters when the configuration has been finalized
+        // todo: change services and parameters when the configuration has been finalized
         $container = $this->getContainer();
         $mongo = $container->get('doctrine_mongodb.odm.default_connection');
         $dbName = $container->getParameter('doctrine_mongodb.odm.security.acl.database');

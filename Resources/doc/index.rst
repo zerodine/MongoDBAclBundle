@@ -7,12 +7,12 @@ Installation using composer
 To install MongoDBAclBundle using composer add following line to you composer.json file::
 
     # composer.json
-    "iampersistent/mongodb-acl-bundle": "dev-master"
+    "pwalkow/mongodb-acl-bundle": "dev-master"
 
 Use the composer update command to start the installation. After the installation add following line into the bundles array in your AppKernel.php file::
 
     # AppKernel.php
-    new IamPersistent\MongoDBAclBundle\IamPersistentMongoDBAclBundle()
+    new PWalkow\MongoDBAclBundle\IamPersistentMongoDBAclBundle()
 
 Configuration
 -------------

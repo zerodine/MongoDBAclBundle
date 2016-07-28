@@ -6,7 +6,7 @@
  * file that was distributed with this source code.
  */
 
-namespace IamPersistent\MongoDBAclBundle\DependencyInjection;
+namespace PWalkow\MongoDBAclBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
@@ -21,6 +21,9 @@ class IamPersistentMongoDBAclExtension extends Extension
 {
     /**
      * Responds to the doctrine_mongodb configuration parameter.
+     *
+     * @param array $configs
+     * @param ContainerBuilder $container
      */
     public function load(array $configs, ContainerBuilder $container)
     {

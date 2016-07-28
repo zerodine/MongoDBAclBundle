@@ -1,6 +1,6 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\Tests\Security\Acl;
+namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
 
 use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
