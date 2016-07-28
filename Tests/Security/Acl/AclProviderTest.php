@@ -2,10 +2,15 @@
 
 namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
 
-use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
+use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
+use Symfony\Component\Security\Acl\Domain\Acl;
+use Symfony\Component\Security\Acl\Domain\Entry;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Doctrine\MongoDB\Connection;
+use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
+use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
+use Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException;
 
 class AclProviderTest extends \PHPUnit_Framework_TestCase
 {
@@ -23,7 +28,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
 
             $this->fail('Provider did not throw an expected exception.');
         } catch (\Exception $ex) {
-            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\AclNotFoundException', $ex);
+            $this->assertInstanceOf(AclNotFoundException::class, $ex);
             $this->assertEquals('There is no ACL for the given object identity.', $ex->getMessage());
         }
     }
@@ -39,8 +44,8 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
 
             $this->fail('Provider did not throw an expected exception.');
         } catch (\Exception $ex) {
-            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\AclNotFoundException', $ex);
-            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException', $ex);
+            $this->assertInstanceOf(AclNotFoundException::class, $ex);
+            $this->assertInstanceOf(NotAllAclsFoundException::class, $ex);
 
             $partialResult = $ex->getPartialResult();
             $this->assertTrue($partialResult->contains($oids[0]));
@@ -59,8 +64,8 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
         $acls = $provider->findAcls($oids);
         $this->assertInstanceOf('SplObjectStorage', $acls);
         $this->assertEquals(2, count($acls));
-        $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Acl', $acl0 = $acls->offsetGet($oids[0]));
-        $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Acl', $acl1 = $acls->offsetGet($oids[1]));
+        $this->assertInstanceOf(Acl::class, $acl0 = $acls->offsetGet($oids[0]));
+        $this->assertInstanceOf(Acl::class, $acl1 = $acls->offsetGet($oids[1]));
         $this->assertTrue($oids[0]->equals($acl0->getObjectIdentity()));
         $this->assertTrue($oids[1]->equals($acl1->getObjectIdentity()));
     }
@@ -86,7 +91,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
 
         $acl = $provider->findAcl($oid);
 
-        $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Acl', $acl);
+        $this->assertInstanceOf(Acl::class, $acl);
         $this->assertTrue($oid->equals($acl->getObjectIdentity()));
         $this->assertEquals((string)$this->oids[4]['_id'], $acl->getId());
         $this->assertEquals(0, count($acl->getClassAces()));
@@ -95,7 +100,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, count($this->getField($acl, 'objectFieldAces')));
 
         $aces = $acl->getObjectAces();
-        $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Entry', $aces[0]);
+        $this->assertInstanceOf(Entry::class, $aces[0]);
         $this->assertTrue($aces[0]->isGranting());
         $this->assertTrue($aces[0]->isAuditSuccess());
         $this->assertTrue($aces[0]->isAuditFailure());
@@ -110,7 +115,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
         }
 
         $sid = $aces[0]->getSecurityIdentity();
-        $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\UserSecurityIdentity', $sid);
+        $this->assertInstanceOf(UserSecurityIdentity::class, $sid);
         $this->assertEquals('john.doe', $sid->getUsername());
         $this->assertEquals('SomeClass', $sid->getClass());
     }

@@ -3,9 +3,10 @@
 namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
 
 use Doctrine\MongoDB\Connection;
-use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
+use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
+
 class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
 {
     /** @var  Connection */
