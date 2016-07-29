@@ -18,7 +18,7 @@ use Symfony\Component\Config\Definition\Processor;
  * @author Richard Shank <develop@zestic.com>
  * @author Piotr Walków <walkowpiotr@gmail.com>
  */
-class PWalkowMongoDBAclExtension extends Extension
+class MongoDBAclExtension extends Extension
 {
     /**
      * Responds to the doctrine_mongodb configuration parameter.
@@ -28,7 +28,6 @@ class PWalkowMongoDBAclExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        // Load DoctrineMongoDBBundle/Resources/config/mongodb.xml
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('security.xml');
 
