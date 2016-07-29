@@ -46,6 +46,12 @@ class AclProvider implements AclProviderInterface
     protected $options;
     protected $permissionGrantingStrategy;
 
+    const OID_COLLECTION_NAME = 'aclObjectIdentities';
+    const ENTRY_COLLECTION_NAME = 'aclEntries';
+
+    const OPTION_KEY_OID_COLLECTION = 'oid_collection';
+    const OPTION_KEY_ENTRY_COLLECTION = 'entry_collection';
+
     /**
      * Constructor
      *
@@ -82,7 +88,7 @@ class AclProvider implements AclProviderInterface
             );
         }
         $children = array();
-        foreach ($this->connection->selectCollection($this->options['oid_collection'])->find($query) as $data) {
+        foreach ($this->connection->selectCollection($this->options[self::OPTION_KEY_OID_COLLECTION])->find($query) as $data) {
             $children[] = $data;
         }
         return $children;
@@ -229,10 +235,23 @@ class AclProvider implements AclProviderInterface
         }
 
         list($oids, $types) = $this->getOidTypeSet($objIdentities);
-        $entryQuery = array('$or' => array(array('objectIdentity.$id' => array('$in' => $oids)), array('class' => array('$in' => $types))));
-        $entryCursor = $this->connection->selectCollection($this->options['entry_collection'])->find($entryQuery);
+        $entryQuery =[
+            '$or' => [
+                [
+                    'objectIdentity.$id' => [
+                        '$in' => $oids
+                    ]
+                ],
+                [
+                    'class' => [
+                        '$in' => array_values($types)
+                    ]
+                ],
+            ],
+        ];
+        $entryCursor = $this->connection->selectCollection($this->options[self::OPTION_KEY_ENTRY_COLLECTION])->find($entryQuery);
         $oidQuery = array('_id' => array('$in' => $oids));
-        $oidCursor = $this->connection->selectCollection($this->options['oid_collection'])->find($oidQuery);
+        $oidCursor = $this->connection->selectCollection($this->options[self::OPTION_KEY_OID_COLLECTION])->find($oidQuery);
         return $this->hydrateObjectIdentities($entryCursor, $oidCursor, $oidLookup, $sids);
     }
 
@@ -245,7 +264,7 @@ class AclProvider implements AclProviderInterface
      */
     protected function getObjectIdentities(array &$batch)
     {
-        $batchSet = array();
+        $batchSet = [];
         for ($i = 0, $c = count($batch); $i < $c; $i++) {
             $batchSet[] = $query = array(
                 "identifier" => $batch[$i]->getIdentifier(),
@@ -254,7 +273,7 @@ class AclProvider implements AclProviderInterface
         }
         $query = array('$or' => $batchSet);
 
-        return $this->connection->selectCollection($this->options['oid_collection'])->find($query);
+        return $this->connection->selectCollection($this->options[self::OPTION_KEY_OID_COLLECTION])->find($query);
     }
 
     /**
@@ -266,12 +285,12 @@ class AclProvider implements AclProviderInterface
      */
     protected function getObjectIdentity(ObjectIdentityInterface $oid)
     {
-        $query = array(
+        $query = [
             "identifier" => $oid->getIdentifier(),
             "type" => $oid->getType(),
-        );
+        ];
 
-        return $this->connection->selectCollection($this->options['oid_collection'])->findOne($query);
+        return $this->connection->selectCollection($this->options[self::OPTION_KEY_OID_COLLECTION])->findOne($query);
     }
 
     /**
@@ -285,8 +304,8 @@ class AclProvider implements AclProviderInterface
     protected function getOidTypeSet(Cursor $objectCursor)
     {
         // FIXME: add support for filtering by sids (right now we select all sids)
-        $oids = array();
-        $types = array();
+        $oids = [];
+        $types = [];
         $objectData = iterator_to_array($objectCursor);
         foreach ($objectData as $object) {
             $oids[] = $object['_id'];
@@ -296,7 +315,7 @@ class AclProvider implements AclProviderInterface
                 $types = array_merge($types, $object['ancestors']);
             }
         }
-        return array(array_unique($oids), array_unique($types));
+        return [array_unique($oids), array_unique($types)];
     }
 
     /**
@@ -319,7 +338,7 @@ class AclProvider implements AclProviderInterface
     protected function hydrateObjectIdentities(Cursor $entryCursor, Cursor $objectCursor, array $oidLookup, array $sids)
     {
         $parentIdToFill = new \SplObjectStorage();
-        $acls = $aces = $emptyArray = array();
+        $acls = $aces = $emptyArray = [];
         $oidCache = $oidLookup;
         $result = new \SplObjectStorage();
         $loadedAces =& $this->loadedAces;
@@ -340,7 +359,7 @@ class AclProvider implements AclProviderInterface
         $aclParentAclProperty->setAccessible(true);
 
 
-        $entries = $classEntries = array();
+        $entries = $classEntries = [];
 
         /**
          * using iterator_to_array is faster, but could cause potential problems with low memory, high data set
@@ -375,7 +394,7 @@ class AclProvider implements AclProviderInterface
                         $parent = $parent['parent'];
                     }
                 }
-                $entries[$aclId][0] = array(
+                $entries[$aclId][0] = [
                     'objectIdentity' => $parent,
                     'fieldName' => null,
                     'aceOrder' => null,
@@ -384,7 +403,7 @@ class AclProvider implements AclProviderInterface
                     'granting' => null,
                     'auditFailure' => null,
                     'auditSuccess' => null,
-                );
+                ];
             }
 
             //Attach the class aces to the right entry if the type of current object matches class
@@ -458,7 +477,7 @@ class AclProvider implements AclProviderInterface
                 if (0 !== $aceId) {
                     // have we already hydrated ACEs for this ACL?
                     if (!isset($aces[$aclId])) {
-                        $aces[$aclId] = array($emptyArray, $emptyArray, $emptyArray, $emptyArray);
+                        $aces[$aclId] = [$emptyArray, $emptyArray, $emptyArray, $emptyArray];
                     }
 
                     // has this ACE already been hydrated during a previous cycle, or
@@ -568,15 +587,27 @@ class AclProvider implements AclProviderInterface
      */
     protected function retrieveObjectIdentityPrimaryKey(ObjectIdentityInterface $oid)
     {
-        $query = array(
+        $query = [
             "identifier" => $oid->getIdentifier(),
             "type" => $oid->getType(),
-        );
+        ];
 
-        $fields = array(
+        $fields = [
             "_id" => true,
-        );
-        $id = $this->connection->selectCollection($this->options['oid_collection'])->findOne($query, $fields);
+        ];
+        $id = $this->connection->selectCollection($this->options[self::OPTION_KEY_OID_COLLECTION])->findOne($query, $fields);
         return $id ? array_pop($id) : null;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getDefaultOptions()
+    {
+        return [
+            self::OPTION_KEY_OID_COLLECTION => self::OID_COLLECTION_NAME,
+            self::OPTION_KEY_ENTRY_COLLECTION => self::ENTRY_COLLECTION_NAME,
+            'sid_table_name' => 'aclSecurityIdentities',
+        ];
     }
 }

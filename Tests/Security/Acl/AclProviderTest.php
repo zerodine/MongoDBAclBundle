@@ -2,24 +2,27 @@
 
 namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
 
-use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
 use Symfony\Component\Security\Acl\Domain\Acl;
 use Symfony\Component\Security\Acl\Domain\Entry;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
-use Doctrine\MongoDB\Connection;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
 use Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException;
+use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
 
-class AclProviderTest extends \PHPUnit_Framework_TestCase
+class AclProviderTest extends AbstractAclProviderTest
 {
-    protected $con;
-    protected $entryCollection;
-    protected $oidCollection;
-    protected $oidAncestorCollection;
-    protected $sidCollection;
-    protected $oids = array();
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->populateDb();
+    }
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+    }
 
     public function testFindAclThrowsExceptionWhenNoAclExists()
     {
@@ -35,7 +38,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testFindAclsThrowsExceptionUnlessAnACLIsFoundForEveryOID()
     {
-        $oids = array();
+        $oids = [];
         $oids[] = new ObjectIdentity('1', 'foo');
         $oids[] = new ObjectIdentity('foo', 'foo');
 
@@ -47,6 +50,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf(AclNotFoundException::class, $ex);
             $this->assertInstanceOf(NotAllAclsFoundException::class, $ex);
 
+            /** @var NotAllAclsFoundException $ex */
             $partialResult = $ex->getPartialResult();
             $this->assertTrue($partialResult->contains($oids[0]));
             $this->assertFalse($partialResult->contains($oids[1]));
@@ -55,7 +59,7 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testFindAcls()
     {
-        $oids = array();
+        $oids = [];
         $oids[] = new ObjectIdentity('1', 'foo');
         $oids[] = new ObjectIdentity('2', 'foo');
 
@@ -100,12 +104,13 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, count($this->getField($acl, 'objectFieldAces')));
 
         $aces = $acl->getObjectAces();
-        $this->assertInstanceOf(Entry::class, $aces[0]);
-        $this->assertTrue($aces[0]->isGranting());
-        $this->assertTrue($aces[0]->isAuditSuccess());
-        $this->assertTrue($aces[0]->isAuditFailure());
-        $this->assertEquals('all', $aces[0]->getStrategy());
-        $this->assertSame(2, $aces[0]->getMask());
+        $this->assertInstanceOf(Entry::class, $firstAce = $aces[0]);
+        /** @var Entry $firstAce */
+        $this->assertTrue($firstAce->isGranting());
+        $this->assertTrue($firstAce->isAuditSuccess());
+        $this->assertTrue($firstAce->isAuditFailure());
+        $this->assertEquals('all', $firstAce->getStrategy());
+        $this->assertSame(2, $firstAce->getMask());
 
         // check ACE are in correct order
         $i = 0;
@@ -114,43 +119,33 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
             $i++;
         }
 
-        $sid = $aces[0]->getSecurityIdentity();
+        $sid = $firstAce->getSecurityIdentity();
         $this->assertInstanceOf(UserSecurityIdentity::class, $sid);
         $this->assertEquals('john.doe', $sid->getUsername());
         $this->assertEquals('SomeClass', $sid->getClass());
     }
 
-    protected function setUp()
+    protected function populateDb()
     {
-        if (!class_exists('Doctrine\MongoDB\Connection')) {
-            $this->markTestSkipped('Doctrine2 MongoDB is required for this test');
-        }
-        $database = 'aclTest';
-        $this->connection = $mongo = new \Doctrine\MongoDB\Connection();
-        $this->con = $mongo->selectDatabase($database);
-
-        $options = $this->getOptions();
-
         // populate the db with some test data
-        $fields = array('classType');
-        $classes = array();
+        $fields = ['classType'];
+        $classes = [];
         foreach ($this->getClassData() as $data) {
             $id = array_shift($data);
             $query = array_combine($fields, $data);
             $classes[$id] = $query;
         }
 
-        $fields = array('identifier', 'username');
-        $sids = array();
+        $fields = ['identifier', 'username'];
+        $sids = [];
         foreach ($this->getSidData() as $data) {
             $id = array_shift($data);
             $sids[$id] = $data;
         }
 
-        $this->oidCollection = $this->con->selectCollection($options['oid_collection']);
-        $this->oids = array();
+        $this->oids = [];
         foreach ($this->getOidData() as $data) {
-            $query = array();
+            $query = [];
             $id = $data[0];
             $classId = $data[1];
             $query['identifier'] = $data[2];
@@ -170,32 +165,27 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
             $this->oids[$id] = $query;
         }
 
-        $fields = array('id', 'class', 'objectIdentity', 'fieldName', 'aceOrder', 'securityIdentity', 'mask', 'granting', 'grantingStrategy', 'auditSuccess', 'auditFailure');
-        $this->entryCollection = $this->con->selectCollection($options['entry_collection']);
+        $fields = [
+            'id', 'class', 'objectIdentity', 'fieldName',
+            'aceOrder', 'securityIdentity', 'mask', 'granting',
+            'grantingStrategy', 'auditSuccess', 'auditFailure'
+        ];
+
         foreach ($this->getEntryData() as $data) {
             $query = array_combine($fields, $data);
             unset($query['id']);
             unset($query['class']);
             $oid = $query['objectIdentity'];
-            $query['objectIdentity'] = array(
-                '$ref' => $options['oid_collection'],
+            $query['objectIdentity'] = [
+                '$ref' => AclProvider::OID_COLLECTION_NAME,
                 '$id' => $this->oids[$oid]['_id'],
-            );
+            ];
             $sid = $query['securityIdentity'];
             if ($sid) {
                 $query['securityIdentity'] = $sids[$sid];
             }
             $this->entryCollection->insert($query);
         }
-    }
-
-    protected function tearDown()
-    {
-        $this->oid = array();
-        $this->connection->close();
-        $this->connection = null;
-        $this->con->drop();
-        $this->con = null;
     }
 
     protected function getField($object, $field)
@@ -251,14 +241,6 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    protected function getOptions()
-    {
-        return array(
-            'oid_collection' => 'aclObjectIdentities',
-            'entry_collection' => 'aclEntries',
-        );
-    }
-
     protected function getStrategy()
     {
         return new PermissionGrantingStrategy();
@@ -266,6 +248,6 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
 
     protected function getProvider()
     {
-        return new AclProvider($this->connection, 'aclTest', $this->getStrategy(), $this->getOptions());
+        return new AclProvider($this->connection, 'aclTest', $this->getStrategy(), AclProvider::getDefaultOptions());
     }
 }

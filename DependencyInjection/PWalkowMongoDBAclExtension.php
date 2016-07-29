@@ -16,8 +16,9 @@ use Symfony\Component\Config\Definition\Processor;
 
 /**
  * @author Richard Shank <develop@zestic.com>
+ * @author Piotr Walków <walkowpiotr@gmail.com>
  */
-class IamPersistentMongoDBAclExtension extends Extension
+class PWalkowMongoDBAclExtension extends Extension
 {
     /**
      * Responds to the doctrine_mongodb configuration parameter.
@@ -50,7 +51,7 @@ class IamPersistentMongoDBAclExtension extends Extension
 
     public function getAlias()
     {
-        return 'iam_persistent_mongo_db_acl';
+        return 'pwalkow_mongo_db_acl';
     }
 
     /**

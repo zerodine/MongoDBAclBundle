@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  * @author Richard Shank <develop@zestic.com>
  * @author Piotr Walków <walkowpiotr@gmail.com>
  */
-class IamPersistentMongoDBAclBundle extends Bundle
+class PWalkowMongoDBAclBundle extends Bundle
 {
 
 }

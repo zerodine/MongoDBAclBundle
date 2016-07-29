@@ -2,8 +2,8 @@
 
 namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
 
+use Doctrine\MongoDB\Collection;
 use Doctrine\MongoDB\Connection;
-
 use Doctrine\MongoDB\Database;
 use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
 use PWalkow\MongoDBAclBundle\Security\Acl\MutableAclProvider;
@@ -17,41 +17,20 @@ use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
 use Symfony\Component\Security\Acl\Exception\ConcurrentModificationException;
 use Symfony\Component\Security\Acl\Model\AuditableEntryInterface;
 use Symfony\Component\Security\Acl\Model\EntryInterface;
-use Symfony\Component\Security\Acl\Model\FieldAwareEntryInterface;
 use Symfony\Component\Security\Acl\Model\FieldEntryInterface;
 
-class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
+class MutableAclProviderTest extends AbstractAclProviderTest
 {
-    static protected $database = 'aclTest';
-    /**
-     * @var Database
-     */
-    protected $con;
-
-    /**
-     * @var Connection
-     */
-    protected $connection;
-
-    public static function assertAceEquals(EntryInterface $a, EntryInterface $b)
+    protected function setUp()
     {
-        self::assertInstanceOf(get_class($a), $b);
+        parent::setUp();
+        $this->oid = [];
+    }
 
-        foreach (array('getId', 'getMask', 'getStrategy', 'isGranting') as $getter) {
-            self::assertSame($a->$getter(), $b->$getter());
-        }
-
-        self::assertTrue($a->getSecurityIdentity()->equals($b->getSecurityIdentity()));
-        self::assertSame($a->getAcl()->getId(), $b->getAcl()->getId());
-
-        if ($a instanceof AuditableEntryInterface) {
-            self::assertSame($a->isAuditSuccess(), $b->isAuditSuccess());
-            self::assertSame($a->isAuditFailure(), $b->isAuditFailure());
-        }
-
-        if ($a instanceof FieldEntryInterface || $a instanceof FieldAwareEntryInterface) {
-            self::assertSame($a->getField(), $b->getField());
-        }
+    protected function tearDown()
+    {
+        $this->oid = [];
+        parent::tearDown();
     }
 
     /**
@@ -72,8 +51,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $acl = $provider->createAcl($oid);
         $cachedAcl = $provider->findAcl($oid);
 
-        $options = $this->getOptions();
-        $oidCursor = $this->con->selectCollection($options['oid_collection'])->find();
+        $oidCursor = $this->oidCollection->find();
 
         $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Acl', $acl);
         $this->assertSame($acl, $cachedAcl);
@@ -125,9 +103,8 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $provider->updateAcl($acl);
         $provider->deleteAcl($oid);
 
-        $options = $this->getOptions();
-        $oidCursor = $this->con->selectCollection($options['oid_collection'])->find();
-        $entryCursor = $this->con->selectCollection($options['entry_collection'])->find();
+        $oidCursor = $this->oidCollection->find();
+        $entryCursor = $this->entryCollection->find();
 
         $this->assertEquals(0, $oidCursor->count());
         $this->assertEquals(0, $entryCursor->count());
@@ -281,7 +258,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
     public function testUpdateDoesNothingWhenThereAreNoChanges()
     {
         $args = array(
-            $this->connection, static::$database, new PermissionGrantingStrategy(), array(),
+            $this->connection, self::DATABASE_NAME, new PermissionGrantingStrategy(), array(),
         );
         $provider = $this->getMockBuilder(MutableAclProvider::class)
                 ->setConstructorArgs($args)
@@ -347,10 +324,8 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
 
         $aces = $acl->getObjectAces();
         $classAces = $acl->getClassAces();
-        $classFieldAces = $acl->getClassFieldAces('field');
         $reloadedAces = $reloadedAcl->getObjectAces();
         $reloadedClassAces = $reloadedAcl->getClassAces();
-        $reloadedClassFieldAces = $reloadedAcl->getClassFieldAces('field');
         $this->assertEquals(count($aces), count($reloadedAces));
         $this->assertEquals(count($classAces), count($reloadedClassAces));
 
@@ -389,12 +364,11 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
      * @param AclProvider $provider
      * @param array $data
      * @throws \InvalidArgumentException
-     * @throws Exception
+     * @throws \Exception
      */
     protected function importAcls(AclProvider $provider, array $data)
     {
         $aclIds = $parentAcls = array();
-
 
         foreach ($data as $name => $aclData) {
             if (!isset($aclData['object_identifier'], $aclData['class_type'])) {
@@ -431,9 +405,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         );
 
         $connection = $this->getField($provider, 'connection');
-        $options = $this->getOptions();
-
-        $parent = $connection->selectCollection($options['oid_collection'])->findOne($query);
+        $parent = $this->oidCollection->findOne($query);
 
         // update parent relationship
         $updates['parent'] = $parent;
@@ -451,7 +423,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
             '$set' => $updates,
         );
 
-        $connection->selectCollection($options['oid_collection'])->update($entry, $newData);
+        $this->oidCollection->update($entry, $newData);
     }
 
     protected function callMethod($object, $method, array $args)
@@ -460,29 +432,6 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $method->setAccessible(true);
 
         return $method->invokeArgs($object, $args);
-    }
-
-    protected function setUp()
-    {
-        if (!class_exists('Doctrine\MongoDB\Connection')) {
-            $this->markTestSkipped('Doctrine2 MongoDB is required for this test');
-        }
-        $this->connection = new Connection();
-        $this->con = $this->connection->selectDatabase(static::$database);
-    }
-
-    protected function tearDown()
-    {
-        $this->oid = array();
-        if ($this->connection) {
-            $this->connection->close();
-            $this->connection = null;
-        }
-
-        if ($this->con) {
-            $this->con->drop();
-            $this->con = null;
-        }
     }
 
     protected function getField($object, $field)
@@ -501,15 +450,6 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $reflection->setAccessible(false);
     }
 
-    protected function getOptions()
-    {
-        return array(
-            'oid_collection' => 'aclObjectIdentities',
-            'sid_table_name' => 'aclSecurityIdentities',
-            'entry_collection' => 'aclEntries',
-        );
-    }
-
     protected function getStrategy()
     {
         return new PermissionGrantingStrategy();
@@ -517,6 +457,29 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
 
     protected function getProvider($cache = null)
     {
-        return new MutableAclProvider($this->connection, static::$database, $this->getStrategy(), $this->getOptions(), $cache);
+        return new MutableAclProvider($this->connection, self::DATABASE_NAME, $this->getStrategy(), AclProvider::getDefaultOptions(), $cache);
     }
+
+    public static function assertAceEquals(EntryInterface $a, EntryInterface $b)
+    {
+        self::assertInstanceOf(get_class($a), $b);
+
+        foreach (array('getId', 'getMask', 'getStrategy', 'isGranting') as $getter) {
+            self::assertSame($a->$getter(), $b->$getter());
+        }
+
+        self::assertTrue($a->getSecurityIdentity()->equals($b->getSecurityIdentity()));
+        self::assertSame($a->getAcl()->getId(), $b->getAcl()->getId());
+
+        if ($a instanceof AuditableEntryInterface) {
+            /** @var AuditableEntryInterface $a */
+            self::assertSame($a->isAuditSuccess(), $b->isAuditSuccess());
+            self::assertSame($a->isAuditFailure(), $b->isAuditFailure());
+        }
+
+        if ($a instanceof FieldEntryInterface) {
+            self::assertSame($a->getField(), $b->getField());
+        }
+    }
+
 }
