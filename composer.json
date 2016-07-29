@@ -24,8 +24,7 @@
     },
     "autoload": {
         "psr-4": {
-            "PWalkow\\MongoDBAclBundle": ""
+            "PWalkow\\MongoDBAclBundle\\": ""
         }
-    },
-    "target-dir": "PWalkow/MongoDBAclBundle"
+    }
 }

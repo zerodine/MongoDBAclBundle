@@ -2,9 +2,6 @@
 
 namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
 
-use Doctrine\MongoDB\Collection;
-use Doctrine\MongoDB\Connection;
-use Doctrine\MongoDB\Database;
 use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
 use PWalkow\MongoDBAclBundle\Security\Acl\MutableAclProvider;
 use Symfony\Component\Security\Acl\Domain\Acl;
