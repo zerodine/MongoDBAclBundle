@@ -9,7 +9,9 @@
 
 namespace PWalkow\MongoDBAclBundle;
 
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use PWalkow\MongoDBAclBundle\DependencyInjection\PWalkowMongoDBAclExtension;
 
 /**
  * @author Richard Shank <develop@zestic.com>
@@ -18,10 +20,10 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 class PWalkowMongoDBAclBundle extends Bundle
 {
     /**
-     * @return string
+     * @return ExtensionInterface
      */
     public function getContainerExtension()
     {
-        return 'pwalkow_mongo_db_acl';
+        return new PWalkowMongoDBAclExtension();
     }
 }
