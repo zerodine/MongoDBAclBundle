@@ -17,5 +17,11 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class PWalkowMongoDBAclBundle extends Bundle
 {
-
+    /**
+     * @return string
+     */
+    public function getContainerExtension()
+    {
+        return 'pwalkow_mongo_db_acl';
+    }
 }
