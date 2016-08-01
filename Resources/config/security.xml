@@ -11,7 +11,10 @@
 
     <services>
         <!-- Security -->
-        <service id="doctrine_mongodb.odm.security.acl.provider" class="%doctrine_mongodb.odm.security.acl.provider.class%" public="false" abstract="true">
+        <service id="doctrine_mongodb.odm.security.acl.provider"
+                 class="%doctrine_mongodb.odm.security.acl.provider.class%"
+                 public="false"
+            >
             <argument type="service" id="doctrine_mongodb.odm.default_connection" />
             <argument>%doctrine_mongodb.odm.security.acl.database%</argument>
             <argument type="service" id="security.acl.permission_granting_strategy" />

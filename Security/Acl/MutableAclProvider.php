@@ -168,7 +168,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
 
             foreach ($this->loadedAcls[$acl->getObjectIdentity()->getType()] as $sameTypeAcl) {
                 if (isset($sharedPropertyChanges['classAces'])) {
-                    if ($acl !== $sameTypeAcl && $classAcesProperty->getValue($sameTypeAcl) !== $sharedPropertyChanges['classAces'][0]) {
+                    if ($acl->getObjectIdentity()->getIdentifier() !== 'class' && $acl !== $sameTypeAcl && $classAcesProperty->getValue($sameTypeAcl) !== $sharedPropertyChanges['classAces'][0]) {
                         throw new ConcurrentModificationException('The "classAces" property has been modified concurrently.');
                     }
 
@@ -471,9 +471,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
         list($old, $new) = $changes;
 
         $currentIds = array();
-        for ($i = 0, $c = count($new); $i < $c; $i++) {
-            $ace = $new[$i];
-
+        foreach ($new as $i => $ace) {
             if (null === $ace->getId()) {
                 $sid = $this->getSecurityIdentityQuery($ace->getSecurityIdentity());
 
@@ -526,7 +524,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * @param string|null $class
      * @param string|null $field
      * @param integer $aceOrder
-     * @param integer $securityIdentity
+     * @param array $securityIdentity
      * @param string $strategy
      * @param integer $mask
      * @param Boolean $granting
