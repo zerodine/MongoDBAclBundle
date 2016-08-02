@@ -241,7 +241,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * This allows us to keep track of which values have been changed, so we don't
      * have to do a full introspection when ->updateAcl() is called.
      *
-     * @param mixed $sender
+     * @param MutableAclInterface|EntryInterface $sender
      * @param string $propertyName
      * @param mixed $oldValue
      * @param mixed $newValue

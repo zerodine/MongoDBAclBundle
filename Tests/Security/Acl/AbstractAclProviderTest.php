@@ -57,14 +57,14 @@ abstract class AbstractAclProviderTest extends \PHPUnit_Framework_TestCase
     {
         $this->oids = [];
 
-        if ($this->connection) {
-            $this->connection->close();
-            $this->connection = null;
-        }
-
         if ($this->database) {
             $this->database->drop();
             $this->database = null;
+        }
+
+        if ($this->connection) {
+            $this->connection->close();
+            $this->connection = null;
         }
 
         parent::tearDown();

@@ -11,6 +11,9 @@ use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
 use Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException;
 use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
 
+/**
+ * @covers AclProvider
+ */
 class AclProviderTest extends AbstractAclProviderTest
 {
     protected function setUp()
@@ -19,23 +22,20 @@ class AclProviderTest extends AbstractAclProviderTest
         $this->populateDb();
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
+    /**
+     * @covers ::findAcl
+     *
+     * @expectedException Symfony\Component\Security\Acl\Exception\AclNotFoundException
+     * @expectedExceptionMessage There is no ACL for the given object identity.
+     */
     public function testFindAclThrowsExceptionWhenNoAclExists()
     {
-        try {
-            $this->getProvider()->findAcl(new ObjectIdentity('foo', 'foo'));
-
-            $this->fail('Provider did not throw an expected exception.');
-        } catch (\Exception $ex) {
-            $this->assertInstanceOf(AclNotFoundException::class, $ex);
-            $this->assertEquals('There is no ACL for the given object identity.', $ex->getMessage());
-        }
+        $this->getProvider()->findAcl(new ObjectIdentity('foo', 'foo'));
     }
 
+    /**
+     * @covers ::findAcls
+     */
     public function testFindAclsThrowsExceptionUnlessAnACLIsFoundForEveryOID()
     {
         $oids = [];
@@ -57,6 +57,9 @@ class AclProviderTest extends AbstractAclProviderTest
         }
     }
 
+    /**
+     * @covers ::findAcls
+     */
     public function testFindAcls()
     {
         $oids = [];
@@ -74,6 +77,9 @@ class AclProviderTest extends AbstractAclProviderTest
         $this->assertTrue($oids[1]->equals($acl1->getObjectIdentity()));
     }
 
+    /**
+     * @covers ::findAcl
+     */
     public function testFindAclCachesAclInMemory()
     {
         $oid = new ObjectIdentity('1', 'foo');
@@ -88,6 +94,9 @@ class AclProviderTest extends AbstractAclProviderTest
         }
     }
 
+    /**
+     * @covers ::findAcl
+     */
     public function testFindAcl()
     {
         $oid = new ObjectIdentity('1', 'foo');

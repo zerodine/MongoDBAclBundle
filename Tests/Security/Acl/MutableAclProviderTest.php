@@ -11,11 +11,13 @@ use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
-use Symfony\Component\Security\Acl\Exception\ConcurrentModificationException;
 use Symfony\Component\Security\Acl\Model\AuditableEntryInterface;
 use Symfony\Component\Security\Acl\Model\EntryInterface;
 use Symfony\Component\Security\Acl\Model\FieldEntryInterface;
 
+/**
+ * @coversDefaultClass MutableAclProvider
+ */
 class MutableAclProviderTest extends AbstractAclProviderTest
 {
     protected function setUp()
@@ -31,31 +33,40 @@ class MutableAclProviderTest extends AbstractAclProviderTest
     }
 
     /**
+     * @covers ::createAcl
+     *
      * @expectedException \Symfony\Component\Security\Acl\Exception\AclAlreadyExistsException
+     * @expectedExceptionMessage ObjectIdentity(123456, Foo) is already associated with an ACL.
      */
     public function testCreateAclThrowsExceptionWhenAclAlreadyExists()
     {
         $provider = $this->getProvider();
-        $oid = new ObjectIdentity('123456', 'FOO');
+        $oid = new ObjectIdentity('123456', 'Foo');
         $provider->createAcl($oid);
         $provider->createAcl($oid);
     }
 
+    /**
+     * @covers ::findAcl
+     */
     public function testCreateAcl()
     {
         $provider = $this->getProvider();
-        $oid = new ObjectIdentity('123456', 'FOO');
+        $oid = new ObjectIdentity('123456', 'Foo');
         $acl = $provider->createAcl($oid);
         $cachedAcl = $provider->findAcl($oid);
 
         $oidCursor = $this->oidCollection->find();
 
-        $this->assertInstanceOf('Symfony\Component\Security\Acl\Domain\Acl', $acl);
+        $this->assertInstanceOf(Acl::class, $acl);
         $this->assertSame($acl, $cachedAcl);
         $this->assertTrue($acl->getObjectIdentity()->equals($oid));
         $this->assertEquals(1, $oidCursor->count());
     }
 
+    /**
+     * @covers ::deleteAcl
+     */
     public function testDeleteAcl()
     {
         $provider = $this->getProvider();
@@ -73,6 +84,10 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         }
     }
 
+    /**
+     * @covers ::updateAcl
+     * @covers ::deleteAcl
+     */
     public function testDeleteAclDeletesChildren()
     {
         $provider = $this->getProvider();
@@ -89,6 +104,10 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         }
     }
 
+    /**
+     * @covers ::updateAcl
+     * @covers ::deleteAcl
+     */
     public function testDeleteAclRemovesOidAndAces()
     {
         $provider = $this->getProvider();
@@ -107,6 +126,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $this->assertEquals(0, $entryCursor->count());
     }
 
+    /**
+     * @covers ::createAcl
+     */
     public function testFindAclsAddsPropertyListener()
     {
         $provider = $this->getProvider();
@@ -115,12 +137,15 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $propertyChanges = $this->getField($provider, 'propertyChanges');
         $this->assertEquals(1, count($propertyChanges));
         $this->assertTrue($propertyChanges->contains($acl));
-        $this->assertEquals(array(), $propertyChanges->offsetGet($acl));
+        $this->assertEquals([], $propertyChanges->offsetGet($acl));
 
         $listeners = $this->getField($acl, 'listeners');
         $this->assertSame($provider, $listeners[0]);
     }
 
+    /**
+     * @covers ::findAcl
+     */
     public function testFindAclsAddsPropertyListenerOnlyOnce()
     {
         $provider = $this->getProvider();
@@ -130,7 +155,7 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $propertyChanges = $this->getField($provider, 'propertyChanges');
         $this->assertEquals(1, count($propertyChanges));
         $this->assertTrue($propertyChanges->contains($acl));
-        $this->assertEquals(array(), $propertyChanges->offsetGet($acl));
+        $this->assertEquals([], $propertyChanges->offsetGet($acl));
 
         $listeners = $this->getField($acl, 'listeners');
         $this->assertEquals(1, count($listeners));
@@ -166,6 +191,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
 
     /**
      * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage $sender is not being tracked by this provider.
+     *
+     * @covers ::propertyChanged
      */
     public function testPropertyChangedDoesNotTrackUnmanagedAcls()
     {
@@ -175,6 +203,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $provider->propertyChanged($acl, 'classAces', array(), array('foo'));
     }
 
+    /**
+     * @covers ::propertyChanged
+     */
     public function testPropertyChangedTracksChangesToAclProperties()
     {
         $provider = $this->getProvider();
@@ -194,6 +225,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $this->assertFalse(isset($changes['entriesInheriting']));
     }
 
+    /**
+     * @covers ::propertyChanged
+     */
     public function testPropertyChangedTracksChangesToAceProperties()
     {
         $provider = $this->getProvider();
@@ -244,6 +278,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
 
     /**
      * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage $acl is not tracked by this provider.
+     *
+     * @covers ::updateAcl
      */
     public function testUpdateAclDoesNotAcceptUntrackedAcls()
     {
@@ -252,6 +289,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $provider->updateAcl($acl);
     }
 
+    /**
+     * @covers ::updateAcl
+     */
     public function testUpdateDoesNothingWhenThereAreNoChanges()
     {
         $args = array(
@@ -260,9 +300,6 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $provider = $this->getMockBuilder(MutableAclProvider::class)
                 ->setConstructorArgs($args)
                 ->getMock();
-//        $provider
-//                ->expects($this->never())
-//                ->method('updateObjectIdentity');
         $acl = new Acl(1, new ObjectIdentity(1, 'Foo'), new PermissionGrantingStrategy(), array(), true);
         $propertyChanges = $this->getField($provider, 'propertyChanges');
         $propertyChanges->offsetSet($acl, array());
@@ -270,6 +307,10 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         $provider->updateAcl($acl);
     }
 
+    /**
+     * @expectedException Symfony\Component\Security\Acl\Exception\ConcurrentModificationException
+     * @expectedExceptionMessage The "classAces" property has been modified concurrently.
+     */
     public function testUpdateAclThrowsExceptionOnConcurrentModificationOfSharedProperties()
     {
         $provider = $this->getProvider();
@@ -288,13 +329,13 @@ class MutableAclProviderTest extends AbstractAclProviderTest
 
         $acl1->insertClassAce($sid, 3);
         $acl2->insertClassAce($sid, 5);
-        try {
-            $provider->updateAcl($acl1);
-            $this->fail('Provider failed to detect a concurrent modification.');
-        } catch (ConcurrentModificationException $ex) {
-        }
+
+        $provider->updateAcl($acl1);
     }
 
+    /**
+     * @covers ::updateAcl
+     */
     public function testUpdateAcl()
     {
         $provider = $this->getProvider();
@@ -334,6 +375,9 @@ class MutableAclProviderTest extends AbstractAclProviderTest
         }
     }
 
+    /**
+     * @covers ::updateAcl
+     */
     public function testUpdateAclWorksForChangingTheParentAcl()
     {
         $provider = $this->getProvider();
@@ -401,7 +445,7 @@ class MutableAclProviderTest extends AbstractAclProviderTest
             '_id' => new \MongoId($parent),
         );
 
-        $connection = $this->getField($provider, 'connection');
+        $this->getField($provider, 'connection');
         $parent = $this->oidCollection->findOne($query);
 
         // update parent relationship
