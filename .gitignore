@@ -3,3 +3,6 @@ composer.lock
 phpunit.xml
 vendor
 .idea
+
+Tests/Functional/App/cache
+Tests/Functional/App/logs
