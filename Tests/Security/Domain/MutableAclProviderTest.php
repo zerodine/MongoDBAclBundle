@@ -1,9 +1,9 @@
 <?php
 
-namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
+namespace PWalkow\MongoDBAclBundle\Tests\Security\Domain;
 
-use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
-use PWalkow\MongoDBAclBundle\Security\Acl\MutableAclProvider;
+use PWalkow\MongoDBAclBundle\Security\Domain\AclProvider;
+use PWalkow\MongoDBAclBundle\Security\Domain\MutableAclProvider;
 use Symfony\Component\Security\Acl\Domain\Acl;
 use Symfony\Component\Security\Acl\Domain\Entry;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;

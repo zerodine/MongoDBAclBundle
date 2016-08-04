@@ -21,6 +21,7 @@ doctrine_mongodb:
 security:
     acl:
         provider: security.mongodb.acl_provider
+        connection: default
     providers:
         in_memory:
             memory: ~

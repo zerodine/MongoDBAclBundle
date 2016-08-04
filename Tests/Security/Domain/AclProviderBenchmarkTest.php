@@ -1,10 +1,10 @@
 <?php
 
-namespace PWalkow\MongoDBAclBundle\Tests\Security\Acl;
+namespace PWalkow\MongoDBAclBundle\Tests\Security\Domain;
 
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
-use PWalkow\MongoDBAclBundle\Security\Acl\AclProvider;
+use PWalkow\MongoDBAclBundle\Security\Domain\AclProvider;
 
 class AclProviderBenchmarkTest extends AbstractAclProviderTest
 {
@@ -91,11 +91,12 @@ class AclProviderBenchmarkTest extends AbstractAclProviderTest
     {
         static $aclRandomKeyValue = 0; // used to retrieve random objects
 
-        $acl = array_merge($objectIdentity,
-                           array(
-                                'entriesInheriting' => (boolean)rand(0, 1),
-                                'randomKey' => $aclRandomKeyValue,
-                           )
+        $acl = array_merge(
+            $objectIdentity,
+            array(
+                'entriesInheriting' => (boolean)rand(0, 1),
+                'randomKey' => $aclRandomKeyValue,
+            )
         );
         $aclRandomKeyValue++;
         if ($parent) {
