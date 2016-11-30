@@ -1,11 +1,8 @@
 framework:
-    translator: { fallback: en }
     secret: secret
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
         strict_requirements: %kernel.debug%
-    templating:
-        engines: ['php']
     default_locale: en
     session: ~
     test: ~
