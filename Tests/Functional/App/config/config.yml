@@ -1,0 +1,35 @@
+framework:
+    secret: secret
+    router:
+        resource: "%kernel.root_dir%/config/routing.yml"
+        strict_requirements: %kernel.debug%
+    default_locale: en
+    session: ~
+    test: ~
+    trusted_hosts: ~
+
+doctrine_mongodb:
+    connections:
+        default:
+            server: mongodb://localhost:27017
+    document_managers:
+        default:
+
+security:
+    acl:
+        provider: security.mongodb.acl_provider
+        connection: default
+    providers:
+        in_memory:
+            memory: ~
+    firewalls:
+        main:
+            anonymous: true
+            pattern: ^/
+
+pwalkow_mongo_db_acl:
+    acl_provider:
+        default_database: 'test_acl_db'
+        collections:
+            entry: 'acl_entries'
+            object_identity: 'acl_object_identities'

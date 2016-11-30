@@ -1,6 +1,6 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\Security\Acl;
+namespace PWalkow\MongoDBAclBundle\Security\Domain;
 
 use Doctrine\Common\PropertyChangedListener;
 use Doctrine\MongoDB\Connection;
@@ -17,15 +17,6 @@ use Symfony\Component\Security\Acl\Model\MutableAclProviderInterface;
 use Symfony\Component\Security\Acl\Model\ObjectIdentityInterface;
 use Symfony\Component\Security\Acl\Model\PermissionGrantingStrategyInterface;
 use Symfony\Component\Security\Acl\Model\SecurityIdentityInterface;
-
-/*
- * This file is part of the Symfony framework.
- *
- * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
- */
 
 /**
  * An implementation of the MutableAclProviderInterface using Doctrine DBAL.
@@ -77,8 +68,10 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
         foreach ($children as $child) {
             $childId = $child['_id'];
             $removable[(string)$childId] = $childId;
-            foreach ($child['ancestors'] as $ancestor) {
-                $removable[(string)$ancestor] = $ancestor;
+            if (isset($child['ancestors'])) {
+                foreach ($child['ancestors'] as $ancestor) {
+                    $removable[(string)$ancestor] = $ancestor;
+                }
             }
         }
 
@@ -166,7 +159,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
 
             foreach ($this->loadedAcls[$acl->getObjectIdentity()->getType()] as $sameTypeAcl) {
                 if (isset($sharedPropertyChanges['classAces'])) {
-                    if ($acl !== $sameTypeAcl && $classAcesProperty->getValue($sameTypeAcl) !== $sharedPropertyChanges['classAces'][0]) {
+                    if ($acl->getObjectIdentity()->getIdentifier() !== 'class' && $acl !== $sameTypeAcl && $classAcesProperty->getValue($sameTypeAcl) !== $sharedPropertyChanges['classAces'][0]) {
                         throw new ConcurrentModificationException('The "classAces" property has been modified concurrently.');
                     }
 
@@ -239,11 +232,12 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * This allows us to keep track of which values have been changed, so we don't
      * have to do a full introspection when ->updateAcl() is called.
      *
-     * @param mixed $sender
+     * @param MutableAclInterface|EntryInterface $sender
      * @param string $propertyName
      * @param mixed $oldValue
      * @param mixed $newValue
-     * @return void
+     *
+     * @return null
      */
     public function propertyChanged($sender, $propertyName, $oldValue, $newValue)
     {
@@ -317,7 +311,8 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * @param ObjectIdentityInterface $oid
      * @param boolean $entriesInheriting
      * @param ObjectIdentityInterface $parent
-     * @return void
+     *
+     * @return null
      */
     protected function createObjectIdentity(ObjectIdentityInterface $oid, $entriesInheriting = false, ObjectIdentityInterface $parent = null)
     {
@@ -344,7 +339,8 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * Deletes all ACEs for the given object identity primary key.
      *
      * @param array $removableIds MongoId
-     * @return void
+     *
+     * @return null
      */
     protected function deleteAccessControlEntries($removableIds)
     {
@@ -360,7 +356,8 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      *
      * @param AclInterface $acl
      * @param array $changes
-     * @return void
+     *
+     * @return null
      */
     protected function updateObjectIdentity(AclInterface $acl, array $changes)
     {
@@ -401,7 +398,8 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      *
      * @param string $name
      * @param array $changes
-     * @return void
+     *
+     * @return null
      */
     private function updateFieldAceProperty($name, array $changes)
     {
@@ -416,7 +414,18 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
                     $objectIdentityId = $name === 'classFieldAces' ? null : $ace->getAcl()->getId();
                     $class = $name === 'classFieldAces' ? $ace->getAcl()->getObjectIdentity()->getType() : null;
 
-                    $aceId = (string)$this->insertAccessControlEntry($objectIdentityId, $class, $field, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure());
+                    $aceId = (string)$this->insertAccessControlEntry(
+                        $objectIdentityId,
+                        $class,
+                        $field,
+                        $i,
+                        $sid,
+                        $ace->getStrategy(),
+                        $ace->getMask(),
+                        $ace->isGranting(),
+                        $ace->isAuditSuccess(),
+                        $ace->isAuditFailure()
+                    );
                     $this->loadedAces[$aceId] = $ace;
 
                     $aceIdProperty = new \ReflectionProperty('Symfony\Component\Security\Acl\Domain\Entry', 'id');
@@ -445,16 +454,15 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      *
      * @param string $name
      * @param array $changes
-     * @return void
+     *
+     * @return null
      */
     protected function updateAceProperty($name, array $changes)
     {
         list($old, $new) = $changes;
 
         $currentIds = array();
-        for ($i = 0, $c = count($new); $i < $c; $i++) {
-            $ace = $new[$i];
-
+        foreach ($new as $i => $ace) {
             if (null === $ace->getId()) {
                 $sid = $this->getSecurityIdentityQuery($ace->getSecurityIdentity());
 
@@ -507,16 +515,27 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * @param string|null $class
      * @param string|null $field
      * @param integer $aceOrder
-     * @param integer $securityIdentityId
+     * @param array $securityIdentity
      * @param string $strategy
      * @param integer $mask
      * @param Boolean $granting
      * @param Boolean $auditSuccess
      * @param Boolean $auditFailure
-     * @return MongoId
+     *
+     * @return \MongoId
      */
-    protected function insertAccessControlEntry($objectIdentityId, $class, $field, $aceOrder, $securityIdentity, $strategy, $mask, $granting, $auditSuccess, $auditFailure)
-    {
+    protected function insertAccessControlEntry(
+        $objectIdentityId,
+        $class,
+        $field,
+        $aceOrder,
+        array $securityIdentity,
+        $strategy,
+        $mask,
+        $granting,
+        $auditSuccess,
+        $auditFailure
+    ) {
         $criteria = array(
             'aceOrder' => $aceOrder,
             'securityIdentity' => $securityIdentity,
@@ -547,6 +566,8 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * Remove an entry from the collection
      *
      * @param string $id
+     *
+     * @return null
      */
     protected function deleteAccessControlEntry($id)
     {
@@ -560,7 +581,8 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      * Persists the changes which were made to ACEs to the database.
      *
      * @param \SplObjectStorage $aces
-     * @return void
+     *
+     * @return null
      */
     protected function updateAces(\SplObjectStorage $aces)
     {
