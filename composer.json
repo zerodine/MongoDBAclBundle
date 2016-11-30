@@ -28,6 +28,5 @@
         "psr-4": {
             "PWalkow\\MongoDBAclBundle\\": ""
         }
-    },
-    "target-dir": "PWalkow/MongoDBAclBundle"
+    }
 }
