@@ -1,19 +1,22 @@
 <?php
 
-namespace IamPersistent\MongoDBAclBundle\Tests\Security\Acl;
+namespace PWalkow\MongoDBAclBundle\Tests\Security\Domain;
 
-use Doctrine\MongoDB\Connection;
-use IamPersistent\MongoDBAclBundle\Security\Acl\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
-use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
-use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
-use Symfony\Component\Security\Core\Role\Role;
+use PWalkow\MongoDBAclBundle\Security\Domain\AclProvider;
 
-class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
+class AclProviderBenchmarkTest extends AbstractAclProviderTest
 {
-    protected $con;
-    protected $options;
+    const DATABASE_NAME = 'aclBenchmark';
+    const NUMBER_OF_ROWS = 300;
+
+    protected function setUp()
+    {
+        parent::setUp();
+        // comment the following line, and run only this test, if you need to benchmark
+        $this->markTestSkipped('Benchmarking skipped');
+    }
 
     public function testFindAcls()
     {
@@ -21,11 +24,14 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
 
         // get some random test object identities from the database
         $oids = array();
-        $max = $this->con->selectCollection($this->options['oid_collection'])->find()->count();
+        $max = $this->oidCollection->find()->count();
 
-        for ($i = 0; $i < 25; $i++) {
+        for ($i = 0; $i < $max; $i++) {
             $randomKey = rand(0, $max);
-            $oid = $this->con->selectCollection($this->options['oid_collection'])->findOne(array('randomKey' => $randomKey));
+            $oid = $this->oidCollection->findOne(['randomKey' => $randomKey]);
+
+            var_dump($oid['identifier'], $oid['type']);
+
             $oids[] = new ObjectIdentity($oid['identifier'], $oid['type']);
         }
 
@@ -37,39 +43,19 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
         echo "Total Time: " . $time . "s\n";
     }
 
-
-    protected function setUp()
-    {
-        // comment the following line, and run only this test, if you need to benchmark
-        $this->markTestSkipped('Benchmarking skipped');
-
-        if (!class_exists('Doctrine\MongoDB\Connection')) {
-            $this->markTestSkipped('Doctrine2 MongoDB is required for this test');
-        }
-        $database = 'aclBenchmark';
-        $mongo = new \Doctrine\MongoDB\Connection();
-        $this->con = $mongo->selectDatabase($database);
-        $this->options = $this->getOptions();
-    }
-
-    protected function tearDown()
-    {
-        $this->con = null;
-    }
-
     /**
      * This generates a huge amount of test data to be used mainly for benchmarking
      * purposes, not so much for testing. That's why it's not called by default.
      */
     protected function generateTestData()
     {
-        $this->con->selectCollection($this->options['oid_collection'])->drop();
-        $this->con->selectCollection($this->options['entry_collection'])->drop();
-        $this->con->selectCollection($this->options['oid_collection'])->ensureIndex(array('randomKey' => 1), array());
-        $this->con->selectCollection($this->options['oid_collection'])->ensureIndex(array('identifier' => 1, 'type' => 1));
-        $this->con->selectCollection($this->options['entry_collection'])->ensureIndex(array('objectIdentity.$id' => 1));
+        $this->oidCollection->drop();
+        $this->entryCollection->drop();
+        $this->oidCollection->ensureIndex(array('randomKey' => 1), array());
+        $this->oidCollection->ensureIndex(array('identifier' => 1, 'type' => 1));
+        $this->entryCollection->ensureIndex(array('objectIdentity.$id' => 1));
 
-        for ($i = 0; $i < 40000; $i++) {
+        for ($i = 0; $i < self::NUMBER_OF_ROWS; $i++) {
             $this->generateAclHierarchy();
         }
     }
@@ -78,7 +64,7 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
     {
         $root = $this->generateAcl($this->chooseObjectIdentity(), null, array());
 
-        $this->generateAclLevel(rand(1, 15), $root, array($root['_id']));
+        $this->generateAclLevel(rand(1, 2), $root, array($root['_id']));
     }
 
     protected function generateAclLevel($depth, $parent, $ancestors)
@@ -105,13 +91,12 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
     {
         static $aclRandomKeyValue = 0; // used to retrieve random objects
 
-        $oidCollection = $this->con->selectCollection($this->options['oid_collection']);
-
-        $acl = array_merge($objectIdentity,
-                           array(
-                                'entriesInheriting' => (boolean)rand(0, 1),
-                                'randomKey' => $aclRandomKeyValue,
-                           )
+        $acl = array_merge(
+            $objectIdentity,
+            array(
+                'entriesInheriting' => (boolean)rand(0, 1),
+                'randomKey' => $aclRandomKeyValue,
+            )
         );
         $aclRandomKeyValue++;
         if ($parent) {
@@ -119,7 +104,7 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
             $acl['ancestors'] = $ancestors;
         }
 
-        $oidCollection->insert($acl);
+        $this->oidCollection->insert($acl);
 
         $this->generateAces($acl);
 
@@ -143,7 +128,6 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
         $sids = array();
         $fieldOrder = array();
 
-        $collection = $this->con->selectCollection($this->options['entry_collection']);
         for ($i = 0; $i <= 30; $i++) {
             $query = array();
 
@@ -151,7 +135,7 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
 
             if (rand(0, 5) != 0) {
                 $query['objectIdentity'] = array(
-                    '$ref' => $this->options['oid_collection'],
+                    '$ref' => AclProvider::OID_COLLECTION_NAME,
                     '$id' => $acl['_id'],
                 );
             }
@@ -190,7 +174,7 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
             $query['auditSuccess'] = (boolean)rand(0, 1);
             $query['auditFailure'] = (boolean)rand(0, 1);
 
-            $collection->insert($query);
+            $this->entryCollection->insert($query);
         }
     }
 
@@ -219,7 +203,10 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
         return $s;
     }
 
-    protected function getOptions()
+    /**
+     * @return array
+     */
+    protected function getCollectionNames()
     {
         return array(
             'oid_collection' => 'aclObjectIdentities',
@@ -227,13 +214,24 @@ class AclProviderBenchmarkTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * @return PermissionGrantingStrategy
+     */
     protected function getStrategy()
     {
         return new PermissionGrantingStrategy();
     }
 
+    /**
+     * @return AclProvider
+     */
     protected function getProvider()
     {
-        return new AclProvider($this->con, $this->getStrategy(), $this->getOptions());
+        return new AclProvider(
+            $this->connection,
+            self::DATABASE_NAME,
+            $this->getStrategy(),
+            $this->getCollectionNames()
+        );
     }
 }

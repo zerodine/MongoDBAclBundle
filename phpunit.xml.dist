@@ -12,17 +12,13 @@
          bootstrap="./Tests/bootstrap.php"
 >
     <testsuites>
-        <testsuite name="IamPersistentMongoDBAclBundle Test Suite">
+        <testsuite name="PWalkow MongoDBAclBundle Test Suite">
             <directory>./Tests/</directory>
         </testsuite>
     </testsuites>
 
     <php>
-        <!-- <server name="SYMFONY" value="/path/to/symfony/src" /> -->
-        <!-- <server name="SYMFONY_TESTS" value="/path/to/symfony/tests" /> -->
-        <!-- <server name="DOCTRINE_MONGODB_ODM" value="/path/to/doctrine-mongodb-odm/lib" /> -->
-        <!-- <server name="DOCTRINE_MONGODB" value="/path/to/doctrine-mongodb/lib" /> -->
-        <!-- <server name="DOCTRINE_COMMON" value="/path/to/doctrine-common/lib" /> -->
+        <server name="KERNEL_DIR" value="Tests/Functional/App" />
     </php>
 
     <filter>
