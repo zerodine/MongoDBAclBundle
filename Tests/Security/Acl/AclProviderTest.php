@@ -115,6 +115,45 @@ class AclProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('SomeClass', $sid->getClass());
     }
 
+    public function testFindChildren()
+    {
+        $oid = new ObjectIdentity('123', 'Bundle\SomeVendor\MyBundle\Entity\SomeEntity');
+        $provider = $this->getProvider();
+
+        $oids = $provider->findChildren($oid);
+
+        $this->assertTrue(is_array($oids), 'check return value is array');
+        $this->assertCount(4, $oids, 'check return value is zero length');
+        foreach ($oids as $oid) {
+            $this->assertTrue(in_array($this->oids[1]['_id'], $oid['ancestors']), 'check oid has correct ancestor');
+        }
+    }
+
+    public function testFindDirectChildren()
+    {
+        $oid = new ObjectIdentity('123', 'Bundle\SomeVendor\MyBundle\Entity\SomeEntity');
+        $provider = $this->getProvider();
+
+        $oids = $provider->findChildren($oid, true);
+
+        $this->assertTrue(is_array($oids), 'check return value is array');
+        $this->assertCount(2, $oids, 'check return value is zero length');
+        foreach ($oids as $oid) {
+            $this->assertTrue(in_array($this->oids[1]['_id'], $oid['ancestors']), 'check oid has correct ancestor');
+        }
+    }
+
+    public function testNotFindChildren()
+    {
+        $oid = new ObjectIdentity('9999', 'foo');
+        $provider = $this->getProvider();
+
+        $oids = $provider->findChildren($oid);
+
+        $this->assertTrue(is_array($oids), 'check return value is array');
+        $this->assertCount(0, $oids, 'check return value is zero length');
+    }
+
     protected function setUp()
     {
         if (!class_exists('Doctrine\MongoDB\Connection')) {
